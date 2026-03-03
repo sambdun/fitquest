@@ -685,11 +685,6 @@ function getRank(level) {
 }
 
 // ── localStorage ──────────────────────────────────────────────
-function load(key, fallback) {
-  try { const v = localStorage.getItem(key); return v !== null ? JSON.parse(v) : fallback }
-  catch { return fallback }
-}
-function save(key, value) { localStorage.setItem(key, JSON.stringify(value)) }
 function todayKey() { return new Date().toISOString().slice(0, 10) }
 
 // ── Default workouts ──────────────────────────────────────────
@@ -1110,22 +1105,69 @@ function LevelUpToast({ level, onDone }) {
 }
 
 // ── Name Screen ───────────────────────────────────────────────
-function NameScreen({ onDone }) {
-  const [name, setName] = useState('')
-  function submit(e) { e.preventDefault(); if (name.trim()) onDone(name.trim()) }
+function AuthScreen({ onAuth }) {
+  const [mode, setMode]         = useState('login')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError]       = useState('')
+  const [loading, setLoading]   = useState(false)
+
+  async function submit(e) {
+    e.preventDefault()
+    if (!username.trim() || !password) return
+    setError('')
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/${mode}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username.trim(), password }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error || 'Something went wrong'); setLoading(false); return }
+      onAuth(data)
+    } catch {
+      setError('Network error')
+      setLoading(false)
+    }
+  }
+
+  function switchMode() {
+    setMode(m => m === 'login' ? 'register' : 'login')
+    setError('')
+  }
+
   return (
     <div className="name-screen">
       <div className="name-card">
         <div className="name-logo">⚡</div>
-        <h1>Welcome to FitQuest</h1>
-        <p>Your fitness journey, gamified.</p>
+        <h1>FitQuest</h1>
+        <p>{mode === 'login' ? 'Welcome back.' : 'Create your account.'}</p>
+        {error && <p className="auth-error">{error}</p>}
         <form onSubmit={submit}>
-          <input autoFocus value={name} onChange={e => setName(e.target.value)}
-            placeholder="What's your name?" maxLength={24} className="name-input" />
-          <button type="submit" className="btn-primary full" disabled={!name.trim()}>
-            Start Training →
+          <input
+            autoFocus
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            placeholder="Username"
+            maxLength={24}
+            className="name-input"
+          />
+          <input
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="Password"
+            className="name-input"
+            style={{ marginTop: 8 }}
+          />
+          <button type="submit" className="btn-primary full" disabled={!username.trim() || !password || loading}>
+            {loading ? '…' : mode === 'login' ? 'Log In →' : 'Register →'}
           </button>
         </form>
+        <button className="auth-switch" onClick={switchMode}>
+          {mode === 'login' ? "Don't have an account? Register" : 'Already have an account? Log in'}
+        </button>
       </div>
     </div>
   )
@@ -1133,49 +1175,114 @@ function NameScreen({ onDone }) {
 
 // ── App ───────────────────────────────────────────────────────
 export default function App() {
-  const [userName,     setUserName]     = useState(() => load('fq_name', ''))
-  const [categoryXP,   setCategoryXP]   = useState(() => load('fq_catxp', DEFAULT_CAT_XP))
-  const [workouts,     setWorkouts]     = useState(() => load('fq_workouts', DEFAULT_WORKOUTS))
-  const [completed,    setCompleted]    = useState(() => load('fq_completed', {})[todayKey()] || [])
-  const [activeCategory, setActiveCategory] = useState(() => load('fq_activecat', 'Strength'))
+  const [user,         setUser]         = useState(null)
+  const [authChecked,  setAuthChecked]  = useState(false)
+  const [categoryXP,   setCategoryXP]   = useState(DEFAULT_CAT_XP)
+  const [workouts,     setWorkouts]     = useState(DEFAULT_WORKOUTS)
+  const [completed,    setCompleted]    = useState([])
+  const [activeCategory, setActiveCategory] = useState('Strength')
   const [levelUp,      setLevelUp]      = useState(null)
   const [page,         setPage]         = useState('dashboard')
 
   const totalXP = Object.values(categoryXP).reduce((a, b) => a + b, 0)
 
-  useEffect(() => { save('fq_name', userName) },        [userName])
-  useEffect(() => { save('fq_catxp', categoryXP) },     [categoryXP])
-  useEffect(() => { save('fq_workouts', workouts) },    [workouts])
-  useEffect(() => { save('fq_activecat', activeCategory) }, [activeCategory])
+  // On mount: check session, then load state
   useEffect(() => {
-    const all = load('fq_completed', {})
-    all[todayKey()] = completed
-    save('fq_completed', all)
-  }, [completed])
+    fetch('/api/me')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data) {
+          setUser(data)
+          return loadState()
+        }
+      })
+      .finally(() => setAuthChecked(true))
+  }, [])
 
-  function handleComplete(workoutId, category) {
+  async function loadState() {
+    const res = await fetch('/api/state')
+    if (!res.ok) return
+    const state = await res.json()
+    setCategoryXP(state.categoryXP)
+    setCompleted(state.completed)
+    // Merge custom workouts on top of defaults
+    const merged = {}
+    for (const cat of CATEGORIES) {
+      merged[cat] = [...DEFAULT_WORKOUTS[cat], ...(state.workouts[cat] || [])]
+    }
+    setWorkouts(merged)
+  }
+
+  async function handleAuth(userData) {
+    setUser(userData)
+    await loadState()
+  }
+
+  async function handleComplete(workoutId, category) {
     if (completed.includes(workoutId)) return
-    const newCatXP  = { ...categoryXP, [category]: (categoryXP[category] || 0) + XP_PER_WORKOUT }
-    const newTotal  = Object.values(newCatXP).reduce((a, b) => a + b, 0)
-    const oldLvl    = Math.floor(totalXP / XP_PER_LEVEL) + 1
-    const newLvl    = Math.floor(newTotal / XP_PER_LEVEL) + 1
+    const oldLvl = Math.floor(totalXP / XP_PER_LEVEL) + 1
+    // Optimistic update
     setCompleted(p => [...p, workoutId])
-    setCategoryXP(newCatXP)
-    if (newLvl > oldLvl) setLevelUp(newLvl)
+    try {
+      const res = await fetch('/api/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workoutId, category }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        const newTotal = Object.values(data.categoryXP).reduce((a, b) => a + b, 0)
+        const newLvl   = Math.floor(newTotal / XP_PER_LEVEL) + 1
+        setCategoryXP(data.categoryXP)
+        if (newLvl > oldLvl) setLevelUp(newLvl)
+      }
+    } catch {
+      // revert optimistic update on failure
+      setCompleted(p => p.filter(id => id !== workoutId))
+    }
   }
 
-  function handleAddWorkout(category, workout) {
-    setWorkouts(p => ({ ...p, [category]: [...(p[category] || []), workout] }))
+  async function handleAddWorkout(category, workout) {
+    try {
+      const res = await fetch('/api/workouts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category, name: workout.name, desc: workout.desc }),
+      })
+      if (res.ok) {
+        const saved = await res.json()
+        setWorkouts(p => ({ ...p, [category]: [...(p[category] || []), saved] }))
+      }
+    } catch { /* ignore */ }
   }
 
-  function handleEditWorkout(category, updated) {
-    setWorkouts(p => ({
-      ...p,
-      [category]: p[category].map(w => w.id === updated.id ? updated : w),
-    }))
+  async function handleEditWorkout(category, updated) {
+    try {
+      const res = await fetch(`/api/workouts/${updated.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: updated.name, desc: updated.desc }),
+      })
+      if (res.ok) {
+        setWorkouts(p => ({
+          ...p,
+          [category]: p[category].map(w => w.id === updated.id ? updated : w),
+        }))
+      }
+    } catch { /* ignore */ }
   }
 
-  if (!userName) return <NameScreen onDone={setUserName} />
+  async function handleLogout() {
+    await fetch('/api/logout', { method: 'POST' })
+    setUser(null)
+    setCategoryXP(DEFAULT_CAT_XP)
+    setWorkouts(DEFAULT_WORKOUTS)
+    setCompleted([])
+    setPage('dashboard')
+  }
+
+  if (!authChecked) return null
+  if (!user) return <AuthScreen onAuth={handleAuth} />
 
   const xpToday = completed.length * XP_PER_WORKOUT
 
@@ -1208,10 +1315,10 @@ export default function App() {
         )}
         <button
           className="header-user"
-          onClick={() => { if (confirm('Change your name?')) setUserName('') }}
-          title="Click to change name"
+          onClick={() => { if (confirm('Log out?')) handleLogout() }}
+          title="Click to log out"
         >
-          {userName}
+          {user.username}
         </button>
       </header>
 
@@ -1222,7 +1329,7 @@ export default function App() {
           {/* Hero */}
           <section className="hero">
             <div className="hero-inner">
-              <h1 className="hero-greeting">Hey, {userName} 👋</h1>
+              <h1 className="hero-greeting">Hey, {user.username} 👋</h1>
               <p className="hero-sub">
                 {completed.length === 0
                   ? 'Pick a category and start earning XP.'

@@ -390,6 +390,8 @@
 .name-card p { font-size: 14px; color: var(--text-mid); margin-bottom: 28px; }
 .name-card form { display: flex; flex-direction: column; gap: 14px; }
 .name-input { text-align: center; font-size: 15px; }
+.auth-error { font-size: 13px; color: #b83347; background: #fde8ea; border-radius: 8px; padding: 8px 12px; margin-bottom: 4px; }
+.auth-switch { background: none; border: none; color: var(--blue); font-size: 13px; cursor: pointer; margin-top: 12px; text-decoration: underline; }
 
 /* ══════════════════════════════════════════
    Level-Up Toast
