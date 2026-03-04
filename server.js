@@ -82,7 +82,7 @@ app.post('/api/register', async (req, res) => {
 
     req.session.userId = userId
     req.session.username = username.trim()
-    res.json({ username: username.trim() })
+    res.json({ username: username.trim(), isNew: true })
   } catch (err) {
     console.error('register error:', err)
     if (err?.message?.includes('UNIQUE')) return res.status(409).json({ error: 'Username already taken' })

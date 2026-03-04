@@ -1183,6 +1183,7 @@ export default function App() {
   const [activeCategory, setActiveCategory] = useState('Strength')
   const [levelUp,      setLevelUp]      = useState(null)
   const [page,         setPage]         = useState('dashboard')
+  const [showWelcome,  setShowWelcome]  = useState(false)
 
   const totalXP = Object.values(categoryXP).reduce((a, b) => a + b, 0)
 
@@ -1216,6 +1217,7 @@ export default function App() {
   async function handleAuth(userData) {
     setUser(userData)
     await loadState()
+    if (userData.isNew) setShowWelcome(true)
   }
 
   async function handleComplete(workoutId, category) {
@@ -1289,6 +1291,25 @@ export default function App() {
   return (
     <div className="app">
       {levelUp && <LevelUpToast level={levelUp} onDone={() => setLevelUp(null)} />}
+
+      {showWelcome && (
+        <div className="welcome-overlay" onClick={() => setShowWelcome(false)}>
+          <div className="welcome-modal" onClick={e => e.stopPropagation()}>
+            <div className="welcome-icon">⚡</div>
+            <h2>Welcome to FitQuest, {user.username}!</h2>
+            <p>Your journey to discover new ways to exercise starts here.</p>
+            <ul className="welcome-list">
+              <li>Complete workouts to earn <strong>XP</strong></li>
+              <li>Level up and climb the <strong>ranks</strong></li>
+              <li>Track progress across <strong>4 categories</strong></li>
+              <li>Add your own custom workouts</li>
+            </ul>
+            <button className="btn-primary full" onClick={() => setShowWelcome(false)}>
+              Start Training →
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <header className="app-header">
