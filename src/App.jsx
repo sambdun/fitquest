@@ -704,15 +704,43 @@ function getClass(categoryXP) {
 // ── localStorage ──────────────────────────────────────────────
 function todayKey() { return new Date().toISOString().slice(0, 10) }
 
+// ── Strength Day Splits ────────────────────────────────────────
+const STRENGTH_DAYS = [
+  {
+    label: 'Chest / Tri',
+    workouts: [
+      { id: 'ct1', name: 'Bench Press',      desc: '4 sets × 8 reps' },
+      { id: 'ct2', name: 'Incline Press',    desc: '3 sets × 10 reps' },
+      { id: 'ct3', name: 'Chest Fly',        desc: '3 sets × 12 reps' },
+      { id: 'ct4', name: 'Tricep Dips',      desc: '3 sets to failure' },
+      { id: 'ct5', name: 'Tricep Pushdown',  desc: '3 sets × 12 reps' },
+    ],
+  },
+  {
+    label: 'Back / Bi',
+    workouts: [
+      { id: 'bb1', name: 'Pull-ups',         desc: '3 sets to failure' },
+      { id: 'bb2', name: 'Barbell Row',      desc: '4 sets × 8 reps' },
+      { id: 'bb3', name: 'Lat Pulldown',     desc: '3 sets × 10 reps' },
+      { id: 'bb4', name: 'Bicep Curl',       desc: '3 sets × 12 reps' },
+      { id: 'bb5', name: 'Hammer Curl',      desc: '3 sets × 12 reps' },
+    ],
+  },
+  {
+    label: 'Legs / Shoulders',
+    workouts: [
+      { id: 'ls1', name: 'Squat',            desc: '4 sets × 6 reps' },
+      { id: 'ls2', name: 'Deadlift',         desc: '3 sets × 5 reps' },
+      { id: 'ls3', name: 'Leg Press',        desc: '3 sets × 12 reps' },
+      { id: 'ls4', name: 'Shoulder Press',   desc: '3 sets × 10 reps' },
+      { id: 'ls5', name: 'Lateral Raise',    desc: '3 sets × 15 reps' },
+    ],
+  },
+]
+
 // ── Default workouts ──────────────────────────────────────────
 const DEFAULT_WORKOUTS = {
-  Strength: [
-    { id: 's1', name: 'Bench Press',    desc: '4 sets × 8 reps' },
-    { id: 's2', name: 'Squat',          desc: '4 sets × 6 reps' },
-    { id: 's3', name: 'Deadlift',       desc: '3 sets × 5 reps' },
-    { id: 's4', name: 'Shoulder Press', desc: '3 sets × 10 reps' },
-    { id: 's5', name: 'Pull-ups',       desc: '3 sets to failure' },
-  ],
+  Strength: [],
   Cardio: [
     { id: 'c1', name: '5K Run',         desc: 'Outdoors or treadmill' },
     { id: 'c2', name: 'Jump Rope',      desc: '3 rounds × 5 min' },
@@ -1011,14 +1039,16 @@ function AddWorkoutModal({ catName, onAdd, onClose }) {
 }
 
 // ── Workout Panel ─────────────────────────────────────────────
-function WorkoutPanel({ category, workouts, completed, onComplete, onAddWorkout, onEditWorkout, onRun, todayRun }) {
+function WorkoutPanel({ category, workouts, completed, onComplete, onAddWorkout, onEditWorkout, onRun, todayRun, strengthDay, onCycleStrengthDay }) {
   const [showAddModal,  setShowAddModal]  = useState(false)
   const [editingWorkout, setEditingWorkout] = useState(null)
-  const col       = CAT_COLORS[category]
-  const list      = workouts[category] || []
-  const runDone   = category === 'Cardio' && completed.includes('cardio-run')
-  const doneToday = list.filter(w => completed.includes(w.id)).length + (runDone ? 1 : 0)
-  const totalCount = list.length + (category === 'Cardio' ? 1 : 0)
+  const col        = CAT_COLORS[category]
+  const dayWorkouts = category === 'Strength' ? STRENGTH_DAYS[strengthDay].workouts : []
+  const customList  = workouts[category] || []
+  const list        = category === 'Strength' ? [...dayWorkouts, ...customList] : customList
+  const runDone     = category === 'Cardio' && completed.includes('cardio-run')
+  const doneToday   = list.filter(w => completed.includes(w.id)).length + (runDone ? 1 : 0)
+  const totalCount  = list.length + (category === 'Cardio' ? 1 : 0)
 
   return (
     <div className="workout-panel">
@@ -1027,6 +1057,13 @@ function WorkoutPanel({ category, workouts, completed, onComplete, onAddWorkout,
           <span className="panel-icon">{CAT_ICONS[category]}</span>
           <h2 className="panel-title">{category}</h2>
         </div>
+        {category === 'Strength' && (
+          <div className="day-cycle">
+            <button className="day-arrow" onClick={() => onCycleStrengthDay(-1)}>‹</button>
+            <span className="day-label">{STRENGTH_DAYS[strengthDay].label}</span>
+            <button className="day-arrow" onClick={() => onCycleStrengthDay(1)}>›</button>
+          </div>
+        )}
         <span className="panel-sub">{doneToday} of {totalCount} completed today</span>
       </div>
 
@@ -1419,6 +1456,7 @@ export default function App() {
   const [page,         setPage]         = useState('dashboard')
   const [showWelcome,  setShowWelcome]  = useState(false)
   const [todayRun,     setTodayRun]     = useState(null)
+  const [strengthDay,  setStrengthDay]  = useState(0)
 
   const totalXP = Object.values(categoryXP).reduce((a, b) => a + b, 0)
 
@@ -1656,6 +1694,8 @@ export default function App() {
               onEditWorkout={handleEditWorkout}
               onRun={handleRun}
               todayRun={todayRun}
+              strengthDay={strengthDay}
+              onCycleStrengthDay={dir => setStrengthDay(d => (d + dir + 3) % 3)}
             />
           </main>
 

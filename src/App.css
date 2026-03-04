@@ -240,6 +240,10 @@
   font-weight: 700; color: var(--text); letter-spacing: -0.01em;
 }
 .panel-sub { font-size: 13px; color: var(--text-dim); padding-left: 2px; }
+.day-cycle { display: flex; align-items: center; gap: 8px; margin: 2px 0; }
+.day-arrow { background: none; border: 1px solid var(--border); border-radius: 6px; width: 28px; height: 28px; font-size: 18px; line-height: 1; cursor: pointer; color: var(--text-mid); display: flex; align-items: center; justify-content: center; transition: background 0.1s; }
+.day-arrow:hover { background: var(--bg); }
+.day-label { font-size: 13px; font-weight: 600; color: var(--text); min-width: 110px; text-align: center; }
 
 /* ── Workout List ── */
 .workout-list { display: flex; flex-direction: column; gap: 10px; }
