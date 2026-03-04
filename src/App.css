@@ -118,6 +118,10 @@
   font-size: clamp(24px, 4vw, 34px); font-weight: 700;
   color: var(--text); margin-bottom: 6px; letter-spacing: -0.02em;
 }
+.hero-class { display: inline-flex; align-items: center; gap: 6px; background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; margin-bottom: 10px; }
+.class-icon { font-size: 14px; }
+.class-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.class-tier { font-size: 11px; color: #f0b97a; letter-spacing: 1px; }
 .hero-sub { font-size: 14px; color: var(--text-mid); margin-bottom: 26px; }
 
 /* ── Master XP Bar ── */

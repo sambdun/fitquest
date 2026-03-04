@@ -684,6 +684,23 @@ function getRank(level) {
   return RANK_TITLES[Math.min(level - 1, RANK_TITLES.length - 1)]
 }
 
+// ── Class System ──────────────────────────────────────────────
+const CLASSES = {
+  Strength:   ['Brawler',  'Berserker',  'Titan'],
+  Cardio:     ['Sprinter', 'Windrunner', 'Ghost'],
+  Sports:     ['Rookie',   'Contender',  'Champion'],
+  Activities: ['Wanderer', 'Ranger',     'Apex'],
+}
+const CLASS_THRESHOLDS = [2000, 10000, 25000]
+
+function getClass(categoryXP) {
+  const [cat, xp] = Object.entries(categoryXP).sort((a, b) => b[1] - a[1])[0]
+  if (xp >= CLASS_THRESHOLDS[2]) return { title: CLASSES[cat][2], category: cat, tier: 3 }
+  if (xp >= CLASS_THRESHOLDS[1]) return { title: CLASSES[cat][1], category: cat, tier: 2 }
+  if (xp >= CLASS_THRESHOLDS[0]) return { title: CLASSES[cat][0], category: cat, tier: 1 }
+  return null
+}
+
 // ── localStorage ──────────────────────────────────────────────
 function todayKey() { return new Date().toISOString().slice(0, 10) }
 
@@ -1208,7 +1225,11 @@ function CommunityPage({ currentUser }) {
                   <span className="player-build">
                     {topCat[1] > 0 ? `${CAT_ICONS[topCat[0]]} ${topCat[0]} build` : 'No workouts yet'}
                   </span>
-                  <span className="player-class">Class: coming soon</span>
+                  {(() => { const cls = getClass(p.categoryXP); return (
+                    <span className="player-class">
+                      {cls ? `${cls.title} ${'★'.repeat(cls.tier)}` : 'Unranked'}
+                    </span>
+                  ) })()}
                 </div>
                 <div className="player-bar-track">
                   <div className="player-bar-fill" style={{ width: `${pct}%`, background: CAT_COLORS[topCat[0]]?.bar || '#89CFF0' }} />
@@ -1409,6 +1430,13 @@ export default function App() {
           <section className="hero">
             <div className="hero-inner">
               <h1 className="hero-greeting">Hey, {user.username} 👋</h1>
+              {(() => { const cls = getClass(categoryXP); return cls ? (
+                <div className="hero-class">
+                  <span className="class-icon">{CAT_ICONS[cls.category]}</span>
+                  <span className="class-title">{cls.title}</span>
+                  <span className="class-tier">{'★'.repeat(cls.tier)}</span>
+                </div>
+              ) : null })()}
               <p className="hero-sub">
                 {completed.length === 0
                   ? 'Pick a category and start earning XP.'
