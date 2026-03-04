@@ -221,6 +221,28 @@ app.delete('/api/workouts/:id', requireLogin, (req, res) => {
   res.json({ ok: true })
 })
 
+app.get('/api/community', requireLogin, (req, res) => {
+  const rows = db.prepare(`
+    SELECT u.username, x.strength_xp, x.cardio_xp, x.sports_xp, x.activities_xp
+    FROM users u
+    JOIN user_xp x ON x.user_id = u.id
+    ORDER BY (x.strength_xp + x.cardio_xp + x.sports_xp + x.activities_xp) DESC
+  `).all()
+
+  const players = rows.map(r => ({
+    username: r.username,
+    categoryXP: {
+      Strength:   r.strength_xp,
+      Cardio:     r.cardio_xp,
+      Sports:     r.sports_xp,
+      Activities: r.activities_xp,
+    },
+    totalXP: r.strength_xp + r.cardio_xp + r.sports_xp + r.activities_xp,
+  }))
+
+  res.json(players)
+})
+
 // ── Static Files ──────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, 'dist')))
 app.get('/{*any}', (req, res) => res.sendFile(path.join(__dirname, 'dist/index.html')))

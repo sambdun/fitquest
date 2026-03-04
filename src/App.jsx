@@ -1173,6 +1173,56 @@ function AuthScreen({ onAuth }) {
   )
 }
 
+// ── Community Page ────────────────────────────────────────────
+function CommunityPage({ currentUser }) {
+  const [players, setPlayers] = useState([])
+
+  useEffect(() => {
+    fetch('/api/community')
+      .then(r => r.ok ? r.json() : [])
+      .then(setPlayers)
+  }, [])
+
+  return (
+    <div className="community-page">
+      <div className="community-header">
+        <h2>Community</h2>
+        <p>{players.length} player{players.length !== 1 ? 's' : ''} on FitQuest</p>
+      </div>
+      <div className="community-list">
+        {players.map((p, i) => {
+          const level   = Math.floor(p.totalXP / XP_PER_LEVEL) + 1
+          const xpIn    = p.totalXP % XP_PER_LEVEL
+          const pct     = Math.min((xpIn / XP_PER_LEVEL) * 100, 100)
+          const isYou   = p.username === currentUser
+          const topCat  = Object.entries(p.categoryXP).sort((a, b) => b[1] - a[1])[0]
+          return (
+            <div key={p.username} className={`player-card${isYou ? ' player-card--you' : ''}`}>
+              <div className="player-rank">#{i + 1}</div>
+              <div className="player-info">
+                <div className="player-name">
+                  {p.username}{isYou && <span className="you-badge">you</span>}
+                </div>
+                <div className="player-meta">
+                  <span className="player-level">LVL {level} · {getRank(level)}</span>
+                  <span className="player-build">
+                    {topCat[1] > 0 ? `${CAT_ICONS[topCat[0]]} ${topCat[0]} build` : 'No workouts yet'}
+                  </span>
+                  <span className="player-class">Class: coming soon</span>
+                </div>
+                <div className="player-bar-track">
+                  <div className="player-bar-fill" style={{ width: `${pct}%`, background: CAT_COLORS[topCat[0]]?.bar || '#89CFF0' }} />
+                </div>
+                <div className="player-xp">{xpIn.toLocaleString()} / {XP_PER_LEVEL.toLocaleString()} XP</div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ── App ───────────────────────────────────────────────────────
 export default function App() {
   const [user,         setUser]         = useState(null)
@@ -1330,6 +1380,12 @@ export default function App() {
           >
             📖 Guide Book
           </button>
+          <button
+            className={`nav-link${page === 'community' ? ' active' : ''}`}
+            onClick={() => setPage('community')}
+          >
+            🌍 Community
+          </button>
         </nav>
         {page === 'dashboard' && (
           <CategoryDropdown active={activeCategory} onChange={setActiveCategory} />
@@ -1343,7 +1399,9 @@ export default function App() {
         </button>
       </header>
 
-      {page === 'guidebook' ? (
+      {page === 'community' ? (
+        <CommunityPage currentUser={user.username} />
+      ) : page === 'guidebook' ? (
         <GuidebookPage workouts={workouts} onAddToWorkouts={handleAddWorkout} />
       ) : (
         <>

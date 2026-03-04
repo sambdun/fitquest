@@ -568,3 +568,28 @@
   padding: 20px 28px 28px;
   border-top: 1px solid var(--border); background: var(--white);
 }
+
+/* ══════════════════════════════════════════
+   Community Page
+══════════════════════════════════════════ */
+.community-page { max-width: 680px; margin: 0 auto; padding: 32px 20px; }
+.community-header { margin-bottom: 24px; }
+.community-header h2 { font-family: 'Barlow', sans-serif; font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.community-header p { font-size: 13px; color: var(--text-dim); }
+.community-list { display: flex; flex-direction: column; gap: 12px; }
+
+.player-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px 20px;
+  display: flex; align-items: flex-start; gap: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.player-card--you { border-color: var(--blue); background: #f4faff; }
+.player-rank { font-size: 13px; font-weight: 700; color: var(--text-dim); min-width: 28px; padding-top: 2px; }
+.player-info { flex: 1; min-width: 0; }
+.player-name { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+.you-badge { font-size: 11px; font-weight: 600; background: var(--blue); color: #fff; border-radius: 20px; padding: 1px 8px; }
+.player-meta { display: flex; gap: 12px; font-size: 12px; color: var(--text-dim); margin-bottom: 10px; flex-wrap: wrap; }
+.player-bar-track { height: 6px; background: var(--bg); border-radius: 99px; overflow: hidden; margin-bottom: 4px; }
+.player-bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+.player-xp { font-size: 11px; color: var(--text-dim); }
