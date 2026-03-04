@@ -169,10 +169,22 @@ app.get('/api/state', requireLogin, (req, res) => {
   res.json({ categoryXP, completed, workouts, todayRun })
 })
 
+app.get('/api/completed', requireLogin, (req, res) => {
+  const { date } = req.query
+  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'Invalid date' })
+  const rows = db.prepare(
+    'SELECT workout_id FROM user_completed WHERE user_id = ? AND date = ?'
+  ).all(req.session.userId, date)
+  res.json(rows.map(r => r.workout_id))
+})
+
 app.post('/api/complete', requireLogin, (req, res) => {
   const userId = req.session.userId
-  const { workoutId, category } = req.body
+  const { workoutId, category, date: reqDate } = req.body
   if (!workoutId || !category) return res.status(400).json({ error: 'workoutId and category required' })
+
+  const date = reqDate && /^\d{4}-\d{2}-\d{2}$/.test(reqDate) ? reqDate : todayKey()
+  if (date > todayKey()) return res.status(400).json({ error: 'Cannot complete future workouts' })
 
   const XP_PER_WORKOUT = 400
   const catColumn = {
@@ -184,13 +196,16 @@ app.post('/api/complete', requireLogin, (req, res) => {
   if (!catColumn) return res.status(400).json({ error: 'Invalid category' })
 
   try {
-    db.prepare(
+    const result = db.prepare(
       'INSERT OR IGNORE INTO user_completed (user_id, workout_id, date) VALUES (?, ?, ?)'
-    ).run(userId, String(workoutId), todayKey())
+    ).run(userId, String(workoutId), date)
 
-    db.prepare(
-      `UPDATE user_xp SET ${catColumn} = ${catColumn} + ? WHERE user_id = ?`
-    ).run(XP_PER_WORKOUT, userId)
+    // Only award XP if this is a new completion (not a duplicate)
+    if (result.changes > 0) {
+      db.prepare(
+        `UPDATE user_xp SET ${catColumn} = ${catColumn} + ? WHERE user_id = ?`
+      ).run(XP_PER_WORKOUT, userId)
+    }
 
     const xpRow = db.prepare('SELECT * FROM user_xp WHERE user_id = ?').get(userId)
     res.json({

@@ -169,6 +169,13 @@
   .stat-board-wrap { padding: 20px 16px 0; }
 }
 
+.date-nav-bar { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px 28px 0; }
+.date-nav-arrow { background: none; border: 1px solid var(--border); border-radius: 6px; width: 30px; height: 30px; font-size: 16px; cursor: pointer; color: var(--text-mid); display: flex; align-items: center; justify-content: center; transition: background 0.1s; }
+.date-nav-arrow:hover:not(:disabled) { background: var(--bg); }
+.date-nav-arrow:disabled { opacity: 0.3; cursor: default; }
+.date-nav-label { font-size: 13px; font-weight: 600; color: var(--text); min-width: 120px; text-align: center; }
+.date-nav-past { color: #f0b97a; }
+
 .stat-card {
   background: var(--white);
   border: 1.5px solid var(--border);

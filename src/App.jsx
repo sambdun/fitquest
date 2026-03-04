@@ -1457,6 +1457,7 @@ export default function App() {
   const [showWelcome,  setShowWelcome]  = useState(false)
   const [todayRun,     setTodayRun]     = useState(null)
   const [strengthDay,  setStrengthDay]  = useState(0)
+  const [viewDate,     setViewDate]     = useState(todayKey())
 
   const totalXP = Object.values(categoryXP).reduce((a, b) => a + b, 0)
 
@@ -1472,6 +1473,18 @@ export default function App() {
       })
       .finally(() => setAuthChecked(true))
   }, [])
+
+  // Reload completions when date changes
+  useEffect(() => {
+    if (!user) return
+    if (viewDate === todayKey()) {
+      loadState()
+    } else {
+      fetch(`/api/completed?date=${viewDate}`)
+        .then(r => r.ok ? r.json() : [])
+        .then(setCompleted)
+    }
+  }, [viewDate])
 
   async function loadState() {
     const res = await fetch('/api/state')
@@ -1503,7 +1516,7 @@ export default function App() {
       const res = await fetch('/api/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ workoutId, category }),
+        body: JSON.stringify({ workoutId, category, date: viewDate }),
       })
       if (res.ok) {
         const data = await res.json()
@@ -1682,6 +1695,31 @@ export default function App() {
           <div className="stat-board-wrap">
             <StatBoard categoryXP={categoryXP} activeCategory={activeCategory} onSelect={setActiveCategory} />
           </div>
+
+          {/* Date nav */}
+          {(() => {
+            const isToday = viewDate === todayKey()
+            function navigateDate(dir) {
+              setViewDate(d => {
+                const date = new Date(d + 'T12:00:00')
+                date.setDate(date.getDate() + dir)
+                const next = date.toISOString().slice(0, 10)
+                if (next > todayKey()) return d
+                const limit = new Date(); limit.setDate(limit.getDate() - 7)
+                if (next < limit.toISOString().slice(0, 10)) return d
+                return next
+              })
+            }
+            const label = isToday ? 'Today' : new Date(viewDate + 'T12:00:00')
+              .toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+            return (
+              <div className="date-nav-bar">
+                <button className="date-nav-arrow" onClick={() => navigateDate(-1)}>←</button>
+                <span className={`date-nav-label${isToday ? '' : ' date-nav-past'}`}>{label}</span>
+                <button className="date-nav-arrow" onClick={() => navigateDate(1)} disabled={isToday}>→</button>
+              </div>
+            )
+          })()}
 
           {/* Workout panel */}
           <main className="main-panel">
