@@ -599,6 +599,18 @@
 .player-xp { font-size: 11px; color: var(--text-dim); }
 
 /* ══════════════════════════════════════════
+   Running Card
+══════════════════════════════════════════ */
+.run-card { flex-direction: column; align-items: stretch; gap: 10px; }
+.run-input-row { display: flex; gap: 8px; align-items: center; }
+.miles-input {
+  width: 90px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  padding: 8px 10px; font-size: 14px; color: var(--text); background: var(--bg);
+  transition: border-color 0.15s;
+}
+.miles-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(137,207,240,0.2); }
+
+/* ══════════════════════════════════════════
    Journal Page
 ══════════════════════════════════════════ */
 .journal-page { max-width: 680px; margin: 0 auto; padding: 32px 20px; }

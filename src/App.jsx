@@ -845,6 +845,58 @@ function CategoryDropdown({ active, onChange }) {
 }
 
 // ── Workout Card ─────────────────────────────────────────────
+function RunningCard({ done, todayMiles, onRun, catColor }) {
+  const [miles, setMiles] = useState('')
+  const xpPreview = miles ? Math.round(parseFloat(miles) * 100) : null
+
+  if (done) {
+    return (
+      <div className="workout-card done run-card" style={{ borderColor: catColor + '66' }}>
+        <div className="workout-info">
+          <span className="workout-name">🏃 Running</span>
+          <span className="workout-desc">{todayMiles} miles logged today · +{Math.round(todayMiles * 100)} XP earned</span>
+        </div>
+        <div className="card-actions">
+          <div className="complete-btn completed">
+            <svg viewBox="0 0 20 20" width="18" height="18" fill="none">
+              <circle cx="10" cy="10" r="9" fill={catColor} />
+              <path d="M6 10.5l3 3 5-5.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="workout-card run-card">
+      <div className="workout-info">
+        <span className="workout-name">🏃 Running</span>
+        <span className="workout-desc">100 XP per mile</span>
+      </div>
+      <div className="run-input-row">
+        <input
+          type="number"
+          min="0.1"
+          step="0.1"
+          placeholder="Miles"
+          value={miles}
+          onChange={e => setMiles(e.target.value)}
+          className="miles-input"
+        />
+        <button
+          className="complete-btn"
+          style={{ background: catColor }}
+          disabled={!miles || parseFloat(miles) <= 0}
+          onClick={() => onRun(parseFloat(miles))}
+        >
+          {xpPreview ? `+${xpPreview} XP` : 'Log Run'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function WorkoutCard({ workout, done, onComplete, onEdit, catColor }) {
   return (
     <div className={`workout-card${done ? ' done' : ''}`} style={done ? { borderColor: catColor + '66' } : {}}>
@@ -959,12 +1011,14 @@ function AddWorkoutModal({ catName, onAdd, onClose }) {
 }
 
 // ── Workout Panel ─────────────────────────────────────────────
-function WorkoutPanel({ category, workouts, completed, onComplete, onAddWorkout, onEditWorkout }) {
+function WorkoutPanel({ category, workouts, completed, onComplete, onAddWorkout, onEditWorkout, onRun, todayRun }) {
   const [showAddModal,  setShowAddModal]  = useState(false)
   const [editingWorkout, setEditingWorkout] = useState(null)
   const col       = CAT_COLORS[category]
   const list      = workouts[category] || []
-  const doneToday = list.filter(w => completed.includes(w.id)).length
+  const runDone   = category === 'Cardio' && completed.includes('cardio-run')
+  const doneToday = list.filter(w => completed.includes(w.id)).length + (runDone ? 1 : 0)
+  const totalCount = list.length + (category === 'Cardio' ? 1 : 0)
 
   return (
     <div className="workout-panel">
@@ -973,11 +1027,19 @@ function WorkoutPanel({ category, workouts, completed, onComplete, onAddWorkout,
           <span className="panel-icon">{CAT_ICONS[category]}</span>
           <h2 className="panel-title">{category}</h2>
         </div>
-        <span className="panel-sub">{doneToday} of {list.length} completed today</span>
+        <span className="panel-sub">{doneToday} of {totalCount} completed today</span>
       </div>
 
       <div className="workout-list">
-        {list.length === 0 && (
+        {category === 'Cardio' && (
+          <RunningCard
+            done={runDone}
+            todayMiles={todayRun?.miles}
+            onRun={onRun}
+            catColor={col.bar}
+          />
+        )}
+        {list.length === 0 && category !== 'Cardio' && (
           <div className="empty-state">No workouts yet — add one below.</div>
         )}
         {list.map(w => (
@@ -1356,6 +1418,7 @@ export default function App() {
   const [levelUp,      setLevelUp]      = useState(null)
   const [page,         setPage]         = useState('dashboard')
   const [showWelcome,  setShowWelcome]  = useState(false)
+  const [todayRun,     setTodayRun]     = useState(null)
 
   const totalXP = Object.values(categoryXP).reduce((a, b) => a + b, 0)
 
@@ -1378,6 +1441,7 @@ export default function App() {
     const state = await res.json()
     setCategoryXP(state.categoryXP)
     setCompleted(state.completed)
+    setTodayRun(state.todayRun || null)
     // Merge custom workouts on top of defaults
     const merged = {}
     for (const cat of CATEGORIES) {
@@ -1446,12 +1510,33 @@ export default function App() {
     } catch { /* ignore */ }
   }
 
+  async function handleRun(miles) {
+    const oldLvl = Math.floor(totalXP / XP_PER_LEVEL) + 1
+    try {
+      const res = await fetch('/api/runs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ miles }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        const newTotal = Object.values(data.categoryXP).reduce((a, b) => a + b, 0)
+        const newLvl   = Math.floor(newTotal / XP_PER_LEVEL) + 1
+        setCategoryXP(data.categoryXP)
+        setCompleted(p => [...p, 'cardio-run'])
+        setTodayRun({ miles: data.miles, xp_awarded: data.xpAwarded })
+        if (newLvl > oldLvl) setLevelUp(newLvl)
+      }
+    } catch { /* ignore */ }
+  }
+
   async function handleLogout() {
     await fetch('/api/logout', { method: 'POST' })
     setUser(null)
     setCategoryXP(DEFAULT_CAT_XP)
     setWorkouts(DEFAULT_WORKOUTS)
     setCompleted([])
+    setTodayRun(null)
     setPage('dashboard')
   }
 
@@ -1569,6 +1654,8 @@ export default function App() {
               onComplete={handleComplete}
               onAddWorkout={handleAddWorkout}
               onEditWorkout={handleEditWorkout}
+              onRun={handleRun}
+              todayRun={todayRun}
             />
           </main>
 

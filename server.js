@@ -52,6 +52,16 @@ db.exec(`
     created_at INTEGER DEFAULT (unixepoch()),
     UNIQUE(user_id, date)
   );
+
+  CREATE TABLE IF NOT EXISTS user_runs (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL,
+    date       TEXT NOT NULL,
+    miles      REAL NOT NULL,
+    xp_awarded INTEGER DEFAULT 0,
+    created_at INTEGER DEFAULT (unixepoch()),
+    UNIQUE(user_id, date)
+  );
 `)
 
 // ── App ───────────────────────────────────────────────────────
@@ -152,7 +162,11 @@ app.get('/api/state', requireLogin, (req, res) => {
     }
   }
 
-  res.json({ categoryXP, completed, workouts })
+  const todayRun = db.prepare(
+    'SELECT miles, xp_awarded FROM user_runs WHERE user_id = ? AND date = ?'
+  ).get(userId, todayKey()) || null
+
+  res.json({ categoryXP, completed, workouts, todayRun })
 })
 
 app.post('/api/complete', requireLogin, (req, res) => {
@@ -191,6 +205,34 @@ app.post('/api/complete', requireLogin, (req, res) => {
     console.error(err)
     res.status(500).json({ error: 'Server error' })
   }
+})
+
+app.post('/api/runs', requireLogin, (req, res) => {
+  const userId = req.session.userId
+  const miles  = parseFloat(req.body.miles)
+  if (!miles || miles <= 0) return res.status(400).json({ error: 'Invalid miles' })
+
+  const existing = db.prepare('SELECT * FROM user_runs WHERE user_id = ? AND date = ?').get(userId, todayKey())
+  if (existing) return res.status(409).json({ error: 'Already logged a run today' })
+
+  const xp = Math.round(miles * 100)
+  db.prepare('INSERT INTO user_runs (user_id, date, miles, xp_awarded) VALUES (?, ?, ?, ?)')
+    .run(userId, todayKey(), miles, xp)
+  db.prepare('INSERT OR IGNORE INTO user_completed (user_id, workout_id, date) VALUES (?, ?, ?)')
+    .run(userId, 'cardio-run', todayKey())
+  db.prepare('UPDATE user_xp SET cardio_xp = cardio_xp + ? WHERE user_id = ?').run(xp, userId)
+
+  const xpRow = db.prepare('SELECT * FROM user_xp WHERE user_id = ?').get(userId)
+  res.json({
+    miles,
+    xpAwarded: xp,
+    categoryXP: {
+      Strength:   xpRow.strength_xp,
+      Cardio:     xpRow.cardio_xp,
+      Sports:     xpRow.sports_xp,
+      Activities: xpRow.activities_xp,
+    }
+  })
 })
 
 app.post('/api/workouts', requireLogin, (req, res) => {
