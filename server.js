@@ -42,6 +42,16 @@ db.exec(`
     desc       TEXT,
     created_at INTEGER DEFAULT (unixepoch())
   );
+
+  CREATE TABLE IF NOT EXISTS user_journal (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL,
+    date       TEXT NOT NULL,
+    entry      TEXT NOT NULL,
+    xp_awarded INTEGER DEFAULT 0,
+    created_at INTEGER DEFAULT (unixepoch()),
+    UNIQUE(user_id, date)
+  );
 `)
 
 // ── App ───────────────────────────────────────────────────────
@@ -219,6 +229,55 @@ app.delete('/api/workouts/:id', requireLogin, (req, res) => {
 
   if (result.changes === 0) return res.status(404).json({ error: 'Workout not found' })
   res.json({ ok: true })
+})
+
+const JOURNAL_XP = 200
+
+app.get('/api/journal', requireLogin, (req, res) => {
+  const entries = db.prepare(
+    'SELECT date, entry, xp_awarded FROM user_journal WHERE user_id = ? ORDER BY date DESC'
+  ).all(req.session.userId)
+  res.json(entries)
+})
+
+app.post('/api/journal', requireLogin, (req, res) => {
+  const { entry } = req.body
+  if (!entry || !entry.trim()) return res.status(400).json({ error: 'Entry required' })
+
+  const userId = req.session.userId
+  const date   = todayKey()
+
+  const existing = db.prepare(
+    'SELECT * FROM user_journal WHERE user_id = ? AND date = ?'
+  ).get(userId, date)
+
+  if (existing) {
+    db.prepare('UPDATE user_journal SET entry = ? WHERE user_id = ? AND date = ?')
+      .run(entry.trim(), userId, date)
+    return res.json({ xpAwarded: 0, updated: true })
+  }
+
+  // Award XP to dominant category
+  const xpRow = db.prepare('SELECT * FROM user_xp WHERE user_id = ?').get(userId)
+  const cols  = ['strength_xp', 'cardio_xp', 'sports_xp', 'activities_xp']
+  const vals  = [xpRow.strength_xp, xpRow.cardio_xp, xpRow.sports_xp, xpRow.activities_xp]
+  const col   = cols[vals.indexOf(Math.max(...vals))]
+
+  db.prepare('INSERT INTO user_journal (user_id, date, entry, xp_awarded) VALUES (?, ?, ?, ?)')
+    .run(userId, date, entry.trim(), JOURNAL_XP)
+  db.prepare(`UPDATE user_xp SET ${col} = ${col} + ? WHERE user_id = ?`)
+    .run(JOURNAL_XP, userId)
+
+  const updated = db.prepare('SELECT * FROM user_xp WHERE user_id = ?').get(userId)
+  res.json({
+    xpAwarded: JOURNAL_XP,
+    categoryXP: {
+      Strength:   updated.strength_xp,
+      Cardio:     updated.cardio_xp,
+      Sports:     updated.sports_xp,
+      Activities: updated.activities_xp,
+    }
+  })
 })
 
 app.get('/api/community', requireLogin, (req, res) => {

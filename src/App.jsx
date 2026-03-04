@@ -1190,6 +1190,107 @@ function AuthScreen({ onAuth }) {
   )
 }
 
+// ── Journal Page ─────────────────────────────────────────────
+function JournalPage({ onXPAwarded }) {
+  const [entries,    setEntries]    = useState([])
+  const [draft,      setDraft]      = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [flash,      setFlash]      = useState(null) // 'earned' | 'saved'
+  const today = todayKey()
+  const todayEntry = entries.find(e => e.date === today)
+
+  useEffect(() => {
+    fetch('/api/journal')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        setEntries(data)
+        const existing = data.find(e => e.date === todayKey())
+        if (existing) setDraft(existing.entry)
+      })
+  }, [])
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (!draft.trim()) return
+    setSubmitting(true)
+    const res  = await fetch('/api/journal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entry: draft.trim() }),
+    })
+    const data = await res.json()
+    setSubmitting(false)
+    if (!res.ok) return
+    if (data.xpAwarded > 0) {
+      onXPAwarded(data.categoryXP)
+      setFlash('earned')
+    } else {
+      setFlash('saved')
+    }
+    setTimeout(() => setFlash(null), 3000)
+    // Refresh entries
+    fetch('/api/journal').then(r => r.json()).then(setEntries)
+  }
+
+  function formatDate(dateStr) {
+    const d = new Date(dateStr + 'T12:00:00')
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  }
+
+  const pastEntries = entries.filter(e => e.date !== today)
+
+  return (
+    <div className="journal-page">
+      <div className="journal-header">
+        <h2>Journal</h2>
+        <p>Write about your workout — earn {200} XP for your first entry each day.</p>
+      </div>
+
+      <div className="journal-today">
+        <div className="journal-today-label">
+          Today · {formatDate(today)}
+          {todayEntry && <span className="journal-xp-badge">+{todayEntry.xp_awarded} XP earned</span>}
+        </div>
+        {flash === 'earned' && <div className="journal-flash journal-flash--xp">+200 XP awarded!</div>}
+        {flash === 'saved'  && <div className="journal-flash">Entry saved.</div>}
+        <form onSubmit={handleSubmit}>
+          <textarea
+            className="journal-textarea"
+            placeholder="What did you work on today? How did it feel?"
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            rows={4}
+            maxLength={1000}
+          />
+          <div className="journal-submit-row">
+            <span className="journal-char-count">{draft.length}/1000</span>
+            <button type="submit" className="btn-primary" disabled={!draft.trim() || submitting}>
+              {submitting ? '…' : todayEntry ? 'Update Entry' : 'Submit & Earn XP'}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {pastEntries.length > 0 && (
+        <div className="journal-past">
+          <h3>Past Entries</h3>
+          <div className="journal-list">
+            {pastEntries.map(e => (
+              <div key={e.date} className="journal-entry">
+                <div className="journal-entry-date">
+                  {formatDate(e.date)}
+                  {e.xp_awarded > 0 && <span className="journal-xp-badge">+{e.xp_awarded} XP</span>}
+                </div>
+                <p className="journal-entry-text">{e.entry}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Community Page ────────────────────────────────────────────
 function CommunityPage({ currentUser }) {
   const [players, setPlayers] = useState([])
@@ -1407,6 +1508,12 @@ export default function App() {
           >
             🌍 Community
           </button>
+          <button
+            className={`nav-link${page === 'journal' ? ' active' : ''}`}
+            onClick={() => setPage('journal')}
+          >
+            📓 Journal
+          </button>
         </nav>
         {page === 'dashboard' && (
           <CategoryDropdown active={activeCategory} onChange={setActiveCategory} />
@@ -1422,6 +1529,8 @@ export default function App() {
 
       {page === 'community' ? (
         <CommunityPage currentUser={user.username} />
+      ) : page === 'journal' ? (
+        <JournalPage onXPAwarded={setCategoryXP} />
       ) : page === 'guidebook' ? (
         <GuidebookPage workouts={workouts} onAddToWorkouts={handleAddWorkout} />
       ) : (
