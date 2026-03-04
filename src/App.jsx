@@ -1508,10 +1508,11 @@ export default function App() {
   }
 
   async function handleComplete(workoutId, category) {
-    if (completed.includes(workoutId)) return
+    const id = String(workoutId)
+    if (completed.includes(id)) return
     const oldLvl = Math.floor(totalXP / XP_PER_LEVEL) + 1
     // Optimistic update
-    setCompleted(p => [...p, workoutId])
+    setCompleted(p => [...p, id])
     try {
       const res = await fetch('/api/complete', {
         method: 'POST',
@@ -1527,7 +1528,7 @@ export default function App() {
       }
     } catch {
       // revert optimistic update on failure
-      setCompleted(p => p.filter(id => id !== workoutId))
+      setCompleted(p => p.filter(c => c !== id))
     }
   }
 
