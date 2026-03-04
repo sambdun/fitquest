@@ -9,7 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = process.env.PORT || 3000
 
 // ── Database ──────────────────────────────────────────────────
-const db = new DatabaseSync('./fitquest.db')
+const db = new DatabaseSync(process.env.DB_PATH || './fitquest.db')
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
