@@ -2020,15 +2020,16 @@ export default function App() {
         >
           {user.username}
         </button>
-        {showProfile && (
-          <ProfilePanel
-            user={user}
-            categoryXP={categoryXP}
-            onLogout={handleLogout}
-            onClose={() => setShowProfile(false)}
-          />
-        )}
       </header>
+
+      {showProfile && (
+        <ProfilePanel
+          user={user}
+          categoryXP={categoryXP}
+          onLogout={handleLogout}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
 
       {page === 'community' ? (
         <CommunityPage currentUser={user.username} />
