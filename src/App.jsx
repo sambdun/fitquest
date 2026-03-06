@@ -1474,22 +1474,47 @@ function EventsPage({ currentUser }) {
   const slots = [...players]
   while (slots.length < 4) slots.push(null)
 
+  const playerSlot = (p, i) => {
+    if (!p) return (
+      <div key={i} className="boss-player-slot empty">
+        <div className="bps-avatar">?</div>
+        <div className="bps-name">—</div>
+        <div className="bps-level">Lv —</div>
+        <div className="bps-bar-track"><div className="bps-bar-fill" style={{ width: '0%' }} /></div>
+      </div>
+    )
+    const totalXP   = p.totalXP || 0
+    const level     = Math.floor(totalXP / XP_PER_LEVEL) + 1
+    const xpInLevel = totalXP % XP_PER_LEVEL
+    const lvPct     = (xpInLevel / XP_PER_LEVEL) * 100
+    const isMe      = p.username === currentUser
+    return (
+      <div key={p.username} className={`boss-player-slot${isMe ? ' me' : ''}`}>
+        <div className="bps-avatar">{p.username[0].toUpperCase()}</div>
+        <div className="bps-name">{p.username}</div>
+        <div className="bps-level">Lv {level}</div>
+        <div className="bps-bar-track">
+          <div className="bps-bar-fill" style={{ width: `${lvPct}%` }} />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="events-page">
-      <div
-        className="boss-arena"
+
+      {/* Boss card */}
+      <div className="boss-arena"
         style={{
-          backgroundImage: `linear-gradient(160deg, rgba(10,10,24,0.82) 0%, rgba(16,21,46,0.78) 50%, rgba(8,28,54,0.84) 100%), url(/boss.png)`,
+          backgroundImage: `linear-gradient(180deg, rgba(8,8,20,0.75) 0%, rgba(14,18,42,0.70) 50%, rgba(6,24,48,0.80) 100%), url(/boss.png)`,
           backgroundSize: 'cover',
-          backgroundPosition: 'center 20%',
+          backgroundPosition: 'center 25%',
         }}
       >
         <div className="boss-title-row">
           <span className="boss-event-label">⚔️ Community Event</span>
         </div>
-
         <div className="boss-name-plate">{boss.name}</div>
-
         <div className="boss-hp-section">
           <div className="boss-hp-label">
             <span>HP</span>
@@ -1500,40 +1525,17 @@ function EventsPage({ currentUser }) {
           </div>
           <div className="boss-hp-sub">{hpPct.toFixed(1)}% remaining · {totalDmg.toLocaleString()} damage dealt</div>
         </div>
-
         <div className="boss-your-dmg">
           Your contribution: <strong>{myDmg.toLocaleString()} dmg</strong>
         </div>
-
-        <div className="boss-players">
-          {slots.slice(0, 4).map((p, i) => {
-            if (!p) return (
-              <div key={i} className="boss-player-slot empty">
-                <div className="bps-avatar">?</div>
-                <div className="bps-name">—</div>
-                <div className="bps-level">Lv —</div>
-                <div className="bps-bar-track"><div className="bps-bar-fill" style={{ width: '0%' }} /></div>
-              </div>
-            )
-            const totalXP   = p.totalXP || 0
-            const level     = Math.floor(totalXP / XP_PER_LEVEL) + 1
-            const xpInLevel = totalXP % XP_PER_LEVEL
-            const lvPct     = (xpInLevel / XP_PER_LEVEL) * 100
-            const isMe      = p.username === currentUser
-            return (
-              <div key={p.username} className={`boss-player-slot${isMe ? ' me' : ''}`}>
-                <div className="bps-avatar">{p.username[0].toUpperCase()}</div>
-                <div className="bps-name">{p.username}</div>
-                <div className="bps-level">Lv {level}</div>
-                <div className="bps-bar-track">
-                  <div className="bps-bar-fill" style={{ width: `${lvPct}%` }} />
-                </div>
-              </div>
-            )
-          })}
-        </div>
       </div>
 
+      {/* Player bar — full width */}
+      <div className="boss-players-bar">
+        {slots.slice(0, 4).map(playerSlot)}
+      </div>
+
+      {/* Damage board */}
       <div className="boss-contributors">
         <h3 className="boss-contrib-title">Damage Board</h3>
         {contributors.length === 0 ? (

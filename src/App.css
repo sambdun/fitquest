@@ -649,21 +649,22 @@
    Events / Boss Page
 ══════════════════════════════════════════ */
 .events-page {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 24px 20px 48px;
+  width: 100%;
+  padding: 24px 0 48px;
 }
 .boss-loading { text-align: center; color: var(--text-dim); padding: 60px 0; font-size: 15px; }
 
+/* Boss card — centered, leaves breathing room for future stadium bg */
 .boss-arena {
   border-radius: 20px;
-  padding: 32px 36px 28px;
-  margin-bottom: 28px;
-  box-shadow: 0 12px 56px rgba(0,0,0,0.6);
+  padding: 32px 40px 28px;
+  margin: 0 auto 0;
+  width: 72%;
+  box-shadow: 0 12px 56px rgba(0,0,0,0.65);
   position: relative;
   overflow: hidden;
   background-color: #1a1a2e;
-  min-height: 520px;
+  min-height: 420px;
   display: flex;
   flex-direction: column;
 }
@@ -671,7 +672,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 50% 35%, rgba(197,48,48,0.12) 0%, transparent 65%);
+  background: radial-gradient(ellipse at 50% 40%, rgba(197,48,48,0.13) 0%, transparent 65%);
   pointer-events: none;
   z-index: 1;
 }
@@ -691,13 +692,13 @@
 
 .boss-name-plate {
   font-family: 'Barlow', sans-serif;
-  font-size: 34px;
+  font-size: 38px;
   font-weight: 800;
   color: #fff;
   letter-spacing: 0.04em;
   text-align: center;
   text-shadow: 0 0 40px rgba(197,48,48,0.9), 0 2px 12px rgba(0,0,0,0.8);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   position: relative;
   z-index: 2;
   flex: 1;
@@ -715,7 +716,7 @@
   letter-spacing: 0.06em;
 }
 .boss-hp-track {
-  height: 16px;
+  height: 18px;
   background: rgba(255,255,255,0.08);
   border-radius: 99px;
   overflow: hidden;
@@ -725,56 +726,57 @@
   height: 100%;
   border-radius: 99px;
   transition: width 0.8s ease;
-  box-shadow: 0 0 12px currentColor;
+  box-shadow: 0 0 14px currentColor;
 }
-.boss-hp-sub { font-size: 11px; color: rgba(255,255,255,0.4); text-align: center; margin-top: 5px; }
+.boss-hp-sub { font-size: 11px; color: rgba(255,255,255,0.4); text-align: center; margin-top: 6px; }
 
 .boss-your-dmg {
   text-align: center;
   font-size: 12px;
   color: rgba(255,255,255,0.5);
-  margin-bottom: 16px;
+  margin-top: 10px;
   position: relative;
   z-index: 2;
 }
 .boss-your-dmg strong { color: #fc8181; }
 
-/* Player slots */
-.boss-players {
+/* Player bar — full width strip */
+.boss-players-bar {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  padding-top: 16px;
-  position: relative;
-  z-index: 2;
+  background: linear-gradient(180deg, #0f0f1e 0%, #181828 100%);
+  border-top: 1px solid rgba(255,255,255,0.07);
+  padding: 20px 32px;
+  margin-top: 0;
+  gap: 12px;
 }
 .boss-player-slot {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  padding: 12px 8px;
 }
-.boss-player-slot.empty { opacity: 0.3; }
+.boss-player-slot.empty { opacity: 0.25; }
 .boss-player-slot.me .bps-avatar {
   border-color: #fc8181;
-  box-shadow: 0 0 10px rgba(252,129,129,0.5);
+  box-shadow: 0 0 14px rgba(252,129,129,0.55);
 }
 .bps-avatar {
-  width: 52px;
-  height: 52px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.1);
-  border: 2px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.18);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 700;
   color: #fff;
 }
 .bps-name {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: rgba(255,255,255,0.85);
   white-space: nowrap;
@@ -789,8 +791,8 @@
   letter-spacing: 0.04em;
 }
 .bps-bar-track {
-  width: 100%;
-  height: 4px;
+  width: 80%;
+  height: 5px;
   background: rgba(255,255,255,0.1);
   border-radius: 99px;
   overflow: hidden;
@@ -809,7 +811,8 @@
   border-radius: var(--radius);
   padding: 20px;
   box-shadow: var(--shadow-sm);
-  margin-bottom: 16px;
+  margin: 28px auto 16px;
+  width: 72%;
 }
 .boss-contrib-title {
   font-family: 'Barlow', sans-serif;
@@ -834,4 +837,4 @@
 .contrib-bar-fill { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
 .contrib-dmg { text-align: right; color: var(--text-mid); font-variant-numeric: tabular-nums; }
 
-.boss-hint { text-align: center; font-size: 12px; color: var(--text-dim); }
+.boss-hint { text-align: center; font-size: 12px; color: var(--text-dim); padding: 0 20px; }
