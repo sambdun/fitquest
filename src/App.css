@@ -715,8 +715,10 @@
   position: absolute;
   inset: 0;
   background-image: url(/boss.png);
-  background-size: cover;
-  background-position: center 15%;
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-color: #06060d;
   animation: eq-boss-breathe 5s ease-in-out infinite;
 }
 @keyframes eq-boss-breathe {
