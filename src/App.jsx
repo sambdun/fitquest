@@ -1446,39 +1446,49 @@ function CommunityPage({ currentUser }) {
 
 // ── Events / Boss Page ────────────────────────────────────────
 function EventsPage({ currentUser }) {
-  const [data,      setData]      = useState(null)
-  const [loading,   setLoading]   = useState(true)
-  const [justSlain, setJustSlain] = useState(false)
+  const [data,    setData]    = useState(null)
+  const [players, setPlayers] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  function load() {
-    fetch('/api/boss')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { setData(d); setLoading(false) })
-  }
-
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/boss').then(r => r.ok ? r.json() : null),
+      fetch('/api/community').then(r => r.ok ? r.json() : []),
+    ]).then(([bossData, communityData]) => {
+      setData(bossData)
+      setPlayers(communityData || [])
+      setLoading(false)
+    })
+  }, [])
 
   if (loading) return <div className="events-page"><p className="boss-loading">Loading…</p></div>
   if (!data || !data.boss) return <div className="events-page"><p className="boss-loading">No active boss right now.</p></div>
 
   const { boss, contributors } = data
-  const hpPct   = Math.max(0, (boss.current_hp / boss.max_hp) * 100)
-  const myDmg   = contributors.find(c => c.username === currentUser)?.damage || 0
+  const hpPct    = Math.max(0, (boss.current_hp / boss.max_hp) * 100)
+  const myDmg    = contributors.find(c => c.username === currentUser)?.damage || 0
   const totalDmg = boss.max_hp - boss.current_hp
+  const hpColor  = hpPct > 50 ? '#e53e3e' : hpPct > 25 ? '#dd6b20' : '#c53030'
 
-  const hpColor = hpPct > 50 ? '#e53e3e' : hpPct > 25 ? '#dd6b20' : '#c53030'
+  // Pad players to 4 slots
+  const slots = [...players]
+  while (slots.length < 4) slots.push(null)
 
   return (
     <div className="events-page">
-      <div className="boss-arena">
+      <div
+        className="boss-arena"
+        style={{
+          backgroundImage: `linear-gradient(160deg, rgba(10,10,24,0.82) 0%, rgba(16,21,46,0.78) 50%, rgba(8,28,54,0.84) 100%), url(/boss.png)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 20%',
+        }}
+      >
         <div className="boss-title-row">
           <span className="boss-event-label">⚔️ Community Event</span>
         </div>
 
-        <div className="boss-image-wrap">
-          <img src="/boss.png" alt={boss.name} className="boss-image" onError={e => { e.target.style.display = 'none' }} />
-          <div className="boss-name-plate">{boss.name}</div>
-        </div>
+        <div className="boss-name-plate">{boss.name}</div>
 
         <div className="boss-hp-section">
           <div className="boss-hp-label">
@@ -1486,16 +1496,41 @@ function EventsPage({ currentUser }) {
             <span>{boss.current_hp.toLocaleString()} / {boss.max_hp.toLocaleString()}</span>
           </div>
           <div className="boss-hp-track">
-            <div
-              className="boss-hp-fill"
-              style={{ width: `${hpPct}%`, background: hpColor }}
-            />
+            <div className="boss-hp-fill" style={{ width: `${hpPct}%`, background: hpColor }} />
           </div>
           <div className="boss-hp-sub">{hpPct.toFixed(1)}% remaining · {totalDmg.toLocaleString()} damage dealt</div>
         </div>
 
         <div className="boss-your-dmg">
           Your contribution: <strong>{myDmg.toLocaleString()} dmg</strong>
+        </div>
+
+        <div className="boss-players">
+          {slots.slice(0, 4).map((p, i) => {
+            if (!p) return (
+              <div key={i} className="boss-player-slot empty">
+                <div className="bps-avatar">?</div>
+                <div className="bps-name">—</div>
+                <div className="bps-level">Lv —</div>
+                <div className="bps-bar-track"><div className="bps-bar-fill" style={{ width: '0%' }} /></div>
+              </div>
+            )
+            const totalXP   = p.totalXP || 0
+            const level     = Math.floor(totalXP / XP_PER_LEVEL) + 1
+            const xpInLevel = totalXP % XP_PER_LEVEL
+            const lvPct     = (xpInLevel / XP_PER_LEVEL) * 100
+            const isMe      = p.username === currentUser
+            return (
+              <div key={p.username} className={`boss-player-slot${isMe ? ' me' : ''}`}>
+                <div className="bps-avatar">{p.username[0].toUpperCase()}</div>
+                <div className="bps-name">{p.username}</div>
+                <div className="bps-level">Lv {level}</div>
+                <div className="bps-bar-track">
+                  <div className="bps-bar-fill" style={{ width: `${lvPct}%` }} />
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
 

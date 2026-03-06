@@ -644,3 +644,194 @@
 .journal-entry { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
 .journal-entry-date { font-size: 12px; font-weight: 600; color: var(--text-dim); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
 .journal-entry-text { font-size: 14px; color: var(--text); line-height: 1.6; white-space: pre-wrap; }
+
+/* ══════════════════════════════════════════
+   Events / Boss Page
+══════════════════════════════════════════ */
+.events-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 20px 48px;
+}
+.boss-loading { text-align: center; color: var(--text-dim); padding: 60px 0; font-size: 15px; }
+
+.boss-arena {
+  border-radius: 16px;
+  padding: 24px 24px 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.55);
+  position: relative;
+  overflow: hidden;
+  background-color: #1a1a2e;
+  min-height: 340px;
+  display: flex;
+  flex-direction: column;
+}
+.boss-arena::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 35%, rgba(197,48,48,0.12) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.boss-title-row { text-align: center; margin-bottom: 10px; position: relative; z-index: 2; }
+.boss-event-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fc8181;
+  background: rgba(197,48,48,0.18);
+  border: 1px solid rgba(197,48,48,0.35);
+  border-radius: 20px;
+  padding: 4px 14px;
+}
+
+.boss-name-plate {
+  font-family: 'Barlow', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-shadow: 0 0 30px rgba(197,48,48,0.9), 0 2px 8px rgba(0,0,0,0.7);
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 2;
+  flex: 1;
+}
+
+.boss-hp-section { margin-bottom: 10px; position: relative; z-index: 2; }
+.boss-hp-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fc8181;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.boss-hp-track {
+  height: 16px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 99px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.boss-hp-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.8s ease;
+  box-shadow: 0 0 12px currentColor;
+}
+.boss-hp-sub { font-size: 11px; color: rgba(255,255,255,0.4); text-align: center; margin-top: 5px; }
+
+.boss-your-dmg {
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 2;
+}
+.boss-your-dmg strong { color: #fc8181; }
+
+/* Player slots */
+.boss-players {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 16px;
+  position: relative;
+  z-index: 2;
+}
+.boss-player-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.boss-player-slot.empty { opacity: 0.3; }
+.boss-player-slot.me .bps-avatar {
+  border-color: #fc8181;
+  box-shadow: 0 0 10px rgba(252,129,129,0.5);
+}
+.bps-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: 2px solid rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+.bps-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.bps-level {
+  font-size: 10px;
+  color: #fbd38d;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.bps-bar-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.bps-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #48bb78, #68d391);
+  border-radius: 99px;
+  transition: width 0.6s ease;
+}
+
+/* Contributor board */
+.boss-contributors {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+}
+.boss-contrib-title {
+  font-family: 'Barlow', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+.boss-no-contrib { font-size: 13px; color: var(--text-dim); text-align: center; padding: 12px 0; }
+.boss-contrib-list { display: flex; flex-direction: column; gap: 10px; }
+.boss-contrib-row {
+  display: grid;
+  grid-template-columns: 24px 1fr 80px 60px;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.boss-contrib-row.you { font-weight: 600; }
+.contrib-rank { color: var(--text-dim); font-size: 12px; }
+.contrib-name { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.contrib-bar-wrap { height: 6px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+.contrib-bar-fill { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
+.contrib-dmg { text-align: right; color: var(--text-mid); font-variant-numeric: tabular-nums; }
+
+.boss-hint { text-align: center; font-size: 12px; color: var(--text-dim); }
