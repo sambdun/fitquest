@@ -16,6 +16,7 @@ db.exec(`
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     username      TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    avatar_data   TEXT DEFAULT NULL,
     created_at    INTEGER DEFAULT (unixepoch())
   );
 
@@ -195,6 +196,36 @@ app.post('/api/logout', (req, res) => {
 app.get('/api/me', (req, res) => {
   if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' })
   res.json({ username: req.session.username })
+})
+
+app.get('/api/profile', requireLogin, (req, res) => {
+  const userId = req.session.userId
+  const user = db.prepare('SELECT avatar_data FROM users WHERE id = ?').get(userId)
+  const xp   = db.prepare('SELECT * FROM user_xp WHERE user_id = ?').get(userId)
+  const workoutCount = db.prepare('SELECT COUNT(*) as n FROM user_completed WHERE user_id = ?').get(userId).n
+  const runCount     = db.prepare('SELECT COUNT(*) as n FROM user_runs WHERE user_id = ?').get(userId).n
+  const journalCount = db.prepare('SELECT COUNT(*) as n FROM user_journal WHERE user_id = ?').get(userId).n
+  res.json({
+    username: req.session.username,
+    avatarData: user.avatar_data,
+    categoryXP: {
+      Strength:   xp.strength_xp,
+      Cardio:     xp.cardio_xp,
+      Sports:     xp.sports_xp,
+      Activities: xp.activities_xp,
+    },
+    stats: { workouts: workoutCount, runs: runCount, journal: journalCount },
+  })
+})
+
+app.post('/api/profile/avatar', requireLogin, (req, res) => {
+  const { avatarData } = req.body
+  if (!avatarData || !avatarData.startsWith('data:image/')) {
+    return res.status(400).json({ error: 'Invalid image data' })
+  }
+  if (avatarData.length > 500000) return res.status(400).json({ error: 'Image too large (max ~375KB)' })
+  db.prepare('UPDATE users SET avatar_data = ? WHERE id = ?').run(avatarData, req.session.userId)
+  res.json({ ok: true })
 })
 
 // ── Data Endpoints ────────────────────────────────────────────

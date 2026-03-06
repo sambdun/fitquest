@@ -1689,6 +1689,113 @@ function EventsPage({ currentUser }) {
   )
 }
 
+// ── Profile Panel ─────────────────────────────────────────────
+function ProfilePanel({ user, categoryXP, onLogout, onClose }) {
+  const [profile,    setProfile]    = useState(null)
+  const [uploading,  setUploading]  = useState(false)
+  const fileRef = useRef(null)
+
+  useEffect(() => {
+    fetch('/api/profile').then(r => r.ok ? r.json() : null).then(setProfile)
+  }, [])
+
+  function handleAvatarChange(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    setUploading(true)
+    const reader = new FileReader()
+    reader.onload = async (ev) => {
+      const avatarData = ev.target.result
+      await fetch('/api/profile/avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatarData }),
+      })
+      setProfile(p => ({ ...p, avatarData }))
+      setUploading(false)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const xp       = profile?.categoryXP || categoryXP
+  const totalXP  = Object.values(xp).reduce((a, b) => a + b, 0)
+  const level    = Math.floor(totalXP / XP_PER_LEVEL) + 1
+  const xpInLv   = totalXP % XP_PER_LEVEL
+  const lvPct    = (xpInLv / XP_PER_LEVEL) * 100
+  const cls      = getClass(xp)
+  const avatar   = profile?.avatarData
+
+  const classIcons = { Strength: '⚔️', Cardio: '🏃', Sports: '🏅', Activities: '🧗' }
+
+  return (
+    <>
+      <div className="profile-overlay" onClick={onClose} />
+      <div className="profile-panel">
+        <button className="profile-close" onClick={onClose}>✕</button>
+
+        <div className="profile-avatar-wrap">
+          {avatar
+            ? <img src={avatar} className="profile-avatar-img" alt="avatar" />
+            : <div className="profile-avatar-initials">{user.username[0].toUpperCase()}</div>
+          }
+          <button className="profile-avatar-edit" onClick={() => fileRef.current.click()} disabled={uploading}>
+            {uploading ? '…' : '📷'}
+          </button>
+          <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
+        </div>
+
+        <h2 className="profile-username">{user.username}</h2>
+
+        <div className="profile-level-badge">Level {level}</div>
+
+        {cls && (
+          <div className="profile-class">
+            <span>{classIcons[cls.category]}</span>
+            <span>{cls.title}</span>
+            <span className="profile-class-stars">{'★'.repeat(cls.tier)}</span>
+          </div>
+        )}
+
+        <div className="profile-xp-bar-wrap">
+          <div className="profile-xp-bar-track">
+            <div className="profile-xp-bar-fill" style={{ width: `${lvPct}%` }} />
+          </div>
+          <div className="profile-xp-label">{xpInLv.toLocaleString()} / {XP_PER_LEVEL.toLocaleString()} XP to Lv {level + 1}</div>
+        </div>
+
+        <div className="profile-stats-grid">
+          {Object.entries(xp).map(([cat, val]) => (
+            <div key={cat} className="profile-stat">
+              <span className="profile-stat-icon">{classIcons[cat]}</span>
+              <span className="profile-stat-label">{cat}</span>
+              <span className="profile-stat-val">{val.toLocaleString()} XP</span>
+            </div>
+          ))}
+        </div>
+
+        {profile?.stats && (
+          <div className="profile-activity-row">
+            <div className="profile-activity-item">
+              <span className="pai-val">{profile.stats.workouts}</span>
+              <span className="pai-label">Workouts</span>
+            </div>
+            <div className="profile-activity-item">
+              <span className="pai-val">{profile.stats.runs}</span>
+              <span className="pai-label">Runs</span>
+            </div>
+            <div className="profile-activity-item">
+              <span className="pai-val">{profile.stats.journal}</span>
+              <span className="pai-label">Journals</span>
+            </div>
+          </div>
+        )}
+
+        <button className="profile-logout-btn" onClick={onLogout}>Log Out</button>
+      </div>
+    </>
+  )
+}
+
 // ── App ───────────────────────────────────────────────────────
 export default function App() {
   const [user,         setUser]         = useState(null)
@@ -1700,6 +1807,7 @@ export default function App() {
   const [levelUp,      setLevelUp]      = useState(null)
   const [page,         setPage]         = useState('dashboard')
   const [showWelcome,  setShowWelcome]  = useState(false)
+  const [showProfile,  setShowProfile]  = useState(false)
   const [todayRun,     setTodayRun]     = useState(null)
   const [strengthDay,  setStrengthDay]  = useState(0)
   const [viewDate,     setViewDate]     = useState(todayKey())
@@ -1908,11 +2016,18 @@ export default function App() {
         )}
         <button
           className="header-user"
-          onClick={() => { if (confirm('Log out?')) handleLogout() }}
-          title="Click to log out"
+          onClick={() => setShowProfile(true)}
         >
           {user.username}
         </button>
+        {showProfile && (
+          <ProfilePanel
+            user={user}
+            categoryXP={categoryXP}
+            onLogout={handleLogout}
+            onClose={() => setShowProfile(false)}
+          />
+        )}
       </header>
 
       {page === 'community' ? (
