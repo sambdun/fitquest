@@ -482,6 +482,34 @@ app.get('/api/boss', requireLogin, (req, res) => {
   res.json({ boss, contributors, activity })
 })
 
+// ── Daily Goblin ──────────────────────────────────────────────
+const GOBLIN_MAX_HP = 1500
+
+app.get('/api/goblin', requireLogin, (req, res) => {
+  const userId = req.session.userId
+  const today  = todayKey()
+
+  const workoutsToday = db.prepare(
+    'SELECT COUNT(*) as n FROM user_completed WHERE user_id = ? AND date = ?'
+  ).get(userId, today).n
+
+  const runToday     = db.prepare('SELECT xp_awarded FROM user_runs    WHERE user_id = ? AND date = ?').get(userId, today)
+  const journalToday = db.prepare('SELECT xp_awarded FROM user_journal WHERE user_id = ? AND date = ?').get(userId, today)
+
+  const workoutDmg = workoutsToday * 400
+  const runDmg     = runToday?.xp_awarded     || 0
+  const journalDmg = journalToday?.xp_awarded || 0
+  const totalDmg   = workoutDmg + runDmg + journalDmg
+  const currentHp  = Math.max(0, GOBLIN_MAX_HP - totalDmg)
+
+  const activity = []
+  if (workoutDmg > 0) activity.push({ icon: '⚔️', desc: `${workoutsToday} workout${workoutsToday > 1 ? 's' : ''}`, dmg: workoutDmg })
+  if (runDmg     > 0) activity.push({ icon: '🏃', desc: "Today's run",    dmg: runDmg })
+  if (journalDmg > 0) activity.push({ icon: '📓', desc: 'Journal entry',  dmg: journalDmg })
+
+  res.json({ maxHp: GOBLIN_MAX_HP, currentHp, totalDmg, defeated: currentHp === 0, activity })
+})
+
 // ── Static Files ──────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, 'dist')))
 app.get('/{*any}', (req, res) => res.sendFile(path.join(__dirname, 'dist/index.html')))

@@ -1242,3 +1242,284 @@
   transition: background 0.15s;
 }
 .profile-logout-btn:hover { background: #fecaca; }
+
+/* ══════════════════════════════════════════
+   Daily Goblin Page
+══════════════════════════════════════════ */
+.gl-page {
+  position: relative;
+  min-height: calc(100vh - 120px);
+  background: #05080a;
+  overflow: hidden;
+  padding-bottom: 60px;
+}
+.gl-loading {
+  text-align: center;
+  color: rgba(255,255,255,0.25);
+  padding: 100px 0;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Embers — green tint */
+.gl-embers {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.gl-ember {
+  position: absolute;
+  bottom: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #b9f7a0 0%, #38a169 50%, transparent 100%);
+  box-shadow: 0 0 5px 1px rgba(56,161,105,0.5);
+  animation: gl-ember-float linear infinite;
+  opacity: 0;
+}
+.gl-ember.bright {
+  background: radial-gradient(circle, #ffffff 0%, #9ae6b4 30%, #276749 70%, transparent 100%);
+  box-shadow: 0 0 9px 3px rgba(104,211,145,0.8);
+}
+@keyframes gl-ember-float {
+  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+  8%   { opacity: 0.9; }
+  45%  { transform: translateY(-42vh) translateX(16px) scale(0.8); opacity: 0.6; }
+  80%  { opacity: 0.2; }
+  100% { transform: translateY(-90vh) translateX(-10px) scale(0.2); opacity: 0; }
+}
+
+/* Arena */
+.gl-arena {
+  position: relative;
+  width: 60%;
+  margin: 28px auto 0;
+  border-radius: 20px;
+  overflow: hidden;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+  box-shadow: 0 0 100px rgba(56,161,105,0.3), 0 20px 60px rgba(0,0,0,0.85);
+}
+.gl-arena-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, rgba(39,103,73,0.55) 0%, rgba(5,8,10,0.95) 65%);
+  animation: gl-bg-pulse 4s ease-in-out infinite;
+}
+@keyframes gl-bg-pulse {
+  0%, 100% { opacity: 0.8; }
+  50%       { opacity: 1; }
+}
+.gl-arena-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(5,8,10,0.6) 100%),
+    linear-gradient(180deg, rgba(5,8,10,0.3) 0%, transparent 30%, transparent 55%, rgba(5,8,10,0.9) 100%);
+}
+.gl-arena-content {
+  position: relative;
+  z-index: 2;
+  padding: 24px 40px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  justify-content: flex-end;
+}
+.gl-daily-badge {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #68d391;
+  background: rgba(56,161,105,0.12);
+  border: 1px solid rgba(56,161,105,0.3);
+  border-radius: 20px;
+  padding: 4px 16px;
+  white-space: nowrap;
+}
+.gl-phase-badge {
+  position: absolute;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid;
+  border-radius: 20px;
+  padding: 3px 12px;
+  white-space: nowrap;
+  animation: gl-phase-pulse 2.5s ease-in-out infinite;
+}
+@keyframes gl-phase-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+/* Goblin image */
+.gl-goblin-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gl-goblin-img {
+  max-height: 65%;
+  max-width: 70%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 30px rgba(56,161,105,0.6));
+  animation: gl-goblin-idle 3s ease-in-out infinite;
+}
+@keyframes gl-goblin-idle {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-10px) scale(1.02); }
+}
+.gl-goblin-fallback {
+  font-size: 120px;
+  line-height: 1;
+  filter: drop-shadow(0 0 30px rgba(56,161,105,0.7));
+  animation: gl-goblin-idle 3s ease-in-out infinite;
+}
+.gl-goblin-img + .gl-goblin-fallback { display: none; }
+
+/* Defeated state */
+.gl-defeated-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.gl-defeated-icon { font-size: 80px; animation: gl-goblin-idle 3s ease-in-out infinite; }
+.gl-defeated-text {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 28px;
+  font-weight: 900;
+  color: #9ae6b4;
+  text-shadow: 0 0 30px rgba(56,161,105,0.8);
+}
+.gl-defeated-sub { font-size: 12px; color: rgba(255,255,255,0.4); letter-spacing: 0.06em; }
+
+/* Boss name */
+.gl-boss-name {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 36px;
+  font-weight: 900;
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 0 40px rgba(56,161,105,0.8), 0 4px 16px rgba(0,0,0,0.9);
+  margin: 0 0 10px;
+  width: 100%;
+}
+
+/* HP bar */
+.gl-hp-wrap { width: 100%; margin-bottom: 8px; }
+.gl-hp-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.gl-hp-label { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #68d391; }
+.gl-hp-nums  { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.65); font-variant-numeric: tabular-nums; }
+.gl-hp-sep   { color: rgba(255,255,255,0.25); margin: 0 4px; }
+.gl-hp-track {
+  height: 18px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.07);
+}
+.gl-hp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1a4731 0%, #276749 40%, #38a169 75%, #68d391 100%);
+  border-radius: 4px;
+  transition: width 1s ease;
+  box-shadow: 0 0 18px rgba(56,161,105,0.7);
+  position: relative;
+  overflow: hidden;
+}
+.gl-hp-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
+  animation: eq-shimmer 2s linear infinite;
+}
+.gl-hp-meta { font-size: 11px; color: rgba(255,255,255,0.35); text-align: center; margin-top: 5px; }
+.gl-hint { font-size: 10px; color: rgba(255,255,255,0.25); letter-spacing: 0.08em; text-align: center; }
+
+/* Lower section */
+.gl-lower {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 20px 28px;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+.gl-section-title {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(56,161,105,0.2);
+}
+.gl-attacks, .gl-guide {
+  background: #0a0f0b;
+  border: 1px solid rgba(56,161,105,0.18);
+  border-radius: 14px;
+  padding: 16px;
+}
+.gl-empty { font-size: 13px; color: rgba(255,255,255,0.25); text-align: center; padding: 16px 0; }
+.gl-attack-list { display: flex; flex-direction: column; gap: 8px; }
+.gl-attack-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(56,161,105,0.06);
+  border: 1px solid rgba(56,161,105,0.12);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.gl-atk-icon { font-size: 16px; }
+.gl-atk-desc { flex: 1; color: rgba(255,255,255,0.75); font-weight: 500; }
+.gl-atk-dmg  { color: #68d391; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 13px; }
+
+.gl-guide-list { display: flex; flex-direction: column; gap: 6px; }
+.gl-guide-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+}
+.gl-guide-row span:nth-child(2) { flex: 1; }
+.gl-guide-dmg { color: #68d391; font-weight: 700; font-variant-numeric: tabular-nums; }
+.gl-guide-divider { height: 1px; background: rgba(255,255,255,0.07); margin: 4px 0; }
+.gl-guide-row.total { color: rgba(255,255,255,0.9); font-weight: 700; }
+.gl-guide-row.total .gl-guide-dmg { color: #9ae6b4; }
+
+@media (max-width: 768px) {
+  .gl-arena { width: 94%; }
+  .gl-boss-name { font-size: 26px; }
+  .gl-lower { grid-template-columns: 1fr; padding: 16px; }
+}

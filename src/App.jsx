@@ -1689,6 +1689,138 @@ function EventsPage({ currentUser }) {
   )
 }
 
+// ── Daily Goblin Page ─────────────────────────────────────────
+const GOBLIN_EMBERS = Array.from({ length: 24 }, (_, i) => ({
+  id: i,
+  left:     `${(i * 4.2 + 1) % 100}%`,
+  delay:    `${(i * 0.28) % 6}s`,
+  duration: `${3 + (i % 5)}s`,
+  size:     `${2 + (i % 4)}px`,
+  bright:   i % 4 === 0,
+}))
+
+function getGoblinPhase(hpPct) {
+  if (hpPct > 75) return { label: 'Taunting',    color: '#68d391' }
+  if (hpPct > 50) return { label: 'Rattled',      color: '#f6e05e' }
+  if (hpPct > 25) return { label: '⚡ Cornered',  color: '#f6ad55' }
+  if (hpPct >  0) return { label: '🩸 Fleeing!',  color: '#fc8181' }
+  return              { label: '☠️ Defeated!',   color: '#9f7aea' }
+}
+
+function GoblinPage() {
+  const [data,    setData]    = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  function load() {
+    fetch('/api/goblin').then(r => r.ok ? r.json() : null).then(d => {
+      setData(d)
+      setLoading(false)
+    })
+  }
+
+  useEffect(() => {
+    load()
+    const id = setInterval(load, 20000)
+    return () => clearInterval(id)
+  }, [])
+
+  if (loading) return <div className="gl-page"><p className="gl-loading">Loading…</p></div>
+  if (!data)   return <div className="gl-page"><p className="gl-loading">Something went wrong.</p></div>
+
+  const { maxHp, currentHp, totalDmg, defeated, activity } = data
+  const hpPct  = Math.max(0, (currentHp / maxHp) * 100)
+  const phase  = getGoblinPhase(hpPct)
+  const dmgLeft = Math.max(0, currentHp)
+
+  return (
+    <div className="gl-page">
+
+      {/* Embers — green tinted */}
+      <div className="gl-embers" aria-hidden="true">
+        {GOBLIN_EMBERS.map(e => (
+          <div key={e.id} className={`gl-ember${e.bright ? ' bright' : ''}`}
+            style={{ left: e.left, animationDelay: e.delay, animationDuration: e.duration, width: e.size, height: e.size }} />
+        ))}
+      </div>
+
+      {/* Goblin arena */}
+      <div className="gl-arena">
+        <div className="gl-arena-bg" />
+        <div className="gl-arena-vignette" />
+        <div className="gl-arena-content">
+          <div className="gl-daily-badge">☠ Daily Challenge</div>
+          <div className="gl-phase-badge" style={{ color: phase.color, borderColor: phase.color + '55' }}>{phase.label}</div>
+
+          {defeated ? (
+            <div className="gl-defeated-wrap">
+              <div className="gl-defeated-icon">💀</div>
+              <div className="gl-defeated-text">Goblin Slain!</div>
+              <div className="gl-defeated-sub">Come back tomorrow for a new challenge</div>
+            </div>
+          ) : (
+            <div className="gl-goblin-wrap">
+              <img src="/goblin.png" alt="Daily Goblin" className="gl-goblin-img"
+                onError={e => { e.target.style.display = 'none' }} />
+              <div className="gl-goblin-fallback">👺</div>
+            </div>
+          )}
+
+          <h1 className="gl-boss-name">Daily Goblin</h1>
+
+          <div className="gl-hp-wrap">
+            <div className="gl-hp-header">
+              <span className="gl-hp-label">HP</span>
+              <span className="gl-hp-nums">{currentHp.toLocaleString()} <span className="gl-hp-sep">/</span> {maxHp.toLocaleString()}</span>
+            </div>
+            <div className="gl-hp-track">
+              <div className="gl-hp-fill" style={{ width: `${hpPct}%` }} />
+            </div>
+            <div className="gl-hp-meta">
+              {defeated
+                ? `You dealt ${totalDmg.toLocaleString()} dmg — full clear! 🏆`
+                : `${dmgLeft.toLocaleString()} HP left · ${totalDmg.toLocaleString()} dmg dealt today`}
+            </div>
+          </div>
+
+          <div className="gl-hint">Resets at midnight · 1 XP = 1 dmg</div>
+        </div>
+      </div>
+
+      {/* Today's attacks */}
+      <div className="gl-lower">
+        <div className="gl-attacks">
+          <h2 className="gl-section-title">⚔ Today's Attacks</h2>
+          {activity.length === 0 ? (
+            <p className="gl-empty">No attacks yet — complete a workout to strike!</p>
+          ) : (
+            <div className="gl-attack-list">
+              {activity.map((a, i) => (
+                <div key={i} className="gl-attack-row">
+                  <span className="gl-atk-icon">{a.icon}</span>
+                  <span className="gl-atk-desc">{a.desc}</span>
+                  <span className="gl-atk-dmg">−{a.dmg.toLocaleString()} HP</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="gl-guide">
+          <h2 className="gl-section-title">📋 How to Win</h2>
+          <div className="gl-guide-list">
+            <div className="gl-guide-row"><span>⚔️</span><span>1 Workout</span><span className="gl-guide-dmg">400 dmg</span></div>
+            <div className="gl-guide-row"><span>🏃</span><span>1 Mile Run</span><span className="gl-guide-dmg">100 dmg</span></div>
+            <div className="gl-guide-row"><span>📓</span><span>Journal Entry</span><span className="gl-guide-dmg">200 dmg</span></div>
+            <div className="gl-guide-divider" />
+            <div className="gl-guide-row total"><span>🏆</span><span>Full Clear Needs</span><span className="gl-guide-dmg">1,500 dmg</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  )
+}
+
 // ── Profile Panel ─────────────────────────────────────────────
 function ProfilePanel({ user, categoryXP, onLogout, onClose }) {
   const [profile,    setProfile]    = useState(null)
@@ -2010,6 +2142,12 @@ export default function App() {
           >
             ⚔️ Events
           </button>
+          <button
+            className={`nav-link${page === 'goblin' ? ' active' : ''}`}
+            onClick={() => setPage('goblin')}
+          >
+            👺 Daily
+          </button>
         </nav>
         {page === 'dashboard' && (
           <CategoryDropdown active={activeCategory} onChange={setActiveCategory} />
@@ -2039,6 +2177,8 @@ export default function App() {
         <GuidebookPage workouts={workouts} onAddToWorkouts={handleAddWorkout} />
       ) : page === 'events' ? (
         <EventsPage currentUser={user.username} />
+      ) : page === 'goblin' ? (
+        <GoblinPage />
       ) : (
         <>
           {/* Hero */}
