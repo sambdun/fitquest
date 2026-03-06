@@ -91,7 +91,7 @@ db.exec(`
 
 // ── Boss System ───────────────────────────────────────────────
 const BOSS_MAX_HP = 50000
-const BOSS_NAME   = 'The Week Dragon'
+const BOSS_NAME   = 'Weekly Dragon'
 
 // Ensure active boss exists with current config
 const activeBoss = db.prepare('SELECT id FROM boss_events WHERE defeated_at IS NULL').get()
