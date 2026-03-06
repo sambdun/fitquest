@@ -649,21 +649,21 @@
    Events / Boss Page
 ══════════════════════════════════════════ */
 .events-page {
-  max-width: 640px;
+  max-width: 860px;
   margin: 0 auto;
-  padding: 32px 20px 48px;
+  padding: 24px 20px 48px;
 }
 .boss-loading { text-align: center; color: var(--text-dim); padding: 60px 0; font-size: 15px; }
 
 .boss-arena {
-  border-radius: 16px;
-  padding: 24px 24px 20px;
-  margin-bottom: 24px;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.55);
+  border-radius: 20px;
+  padding: 32px 36px 28px;
+  margin-bottom: 28px;
+  box-shadow: 0 12px 56px rgba(0,0,0,0.6);
   position: relative;
   overflow: hidden;
   background-color: #1a1a2e;
-  min-height: 340px;
+  min-height: 520px;
   display: flex;
   flex-direction: column;
 }
@@ -691,12 +691,12 @@
 
 .boss-name-plate {
   font-family: 'Barlow', sans-serif;
-  font-size: 26px;
+  font-size: 34px;
   font-weight: 800;
   color: #fff;
   letter-spacing: 0.04em;
   text-align: center;
-  text-shadow: 0 0 30px rgba(197,48,48,0.9), 0 2px 8px rgba(0,0,0,0.7);
+  text-shadow: 0 0 40px rgba(197,48,48,0.9), 0 2px 12px rgba(0,0,0,0.8);
   margin-bottom: 16px;
   position: relative;
   z-index: 2;
@@ -761,29 +761,29 @@
   box-shadow: 0 0 10px rgba(252,129,129,0.5);
 }
 .bps-avatar {
-  width: 38px;
-  height: 38px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: rgba(255,255,255,0.1);
   border: 2px solid rgba(255,255,255,0.2);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 700;
   color: #fff;
 }
 .bps-name {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255,255,255,0.85);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
 }
 .bps-level {
-  font-size: 10px;
+  font-size: 11px;
   color: #fbd38d;
   font-weight: 700;
   letter-spacing: 0.04em;
