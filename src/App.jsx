@@ -1444,122 +1444,244 @@ function CommunityPage({ currentUser }) {
   )
 }
 
+// ── Events helpers ────────────────────────────────────────────
+function getPlayerClass(player) {
+  if (!player?.categoryXP) return { icon: '⚔️', name: 'Warrior' }
+  const c = player.categoryXP
+  const max = Math.max(c.Strength || 0, c.Cardio || 0, c.Sports || 0, c.Activities || 0)
+  if (max === 0 || c.Strength === max) return { icon: '⚔️', name: 'Warrior' }
+  if (c.Cardio === max)     return { icon: '🏃', name: 'Scout' }
+  if (c.Sports === max)     return { icon: '🏅', name: 'Champion' }
+  return { icon: '🧗', name: 'Mystic' }
+}
+
+function getBossPhase(hpPct) {
+  if (hpPct > 70) return { label: 'Awakening',      color: '#a0aec0' }
+  if (hpPct > 50) return { label: 'Stirring',        color: '#ed8936' }
+  if (hpPct > 30) return { label: 'Wounded',         color: '#e53e3e' }
+  if (hpPct > 10) return { label: '🔥 Enraged',      color: '#c53030' }
+  return              { label: '💀 Death Throes',    color: '#742a2a' }
+}
+
+function getTimeAgo(unixSec) {
+  const diff = Math.floor(Date.now() / 1000) - unixSec
+  if (diff < 60)    return 'just now'
+  if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
+  return `${Math.floor(diff / 86400)}d ago`
+}
+
+function getFeedIcon(desc) {
+  if (!desc) return '⚔️'
+  const d = desc.toLowerCase()
+  if (d.includes('run'))      return '🏃'
+  if (d.includes('journal'))  return '📓'
+  if (d.includes('strength')) return '💪'
+  if (d.includes('sport'))    return '🏅'
+  if (d.includes('activit'))  return '🧗'
+  return '⚔️'
+}
+
+function useCountdown(endsAt) {
+  const [timeLeft, setTimeLeft] = useState('')
+  useEffect(() => {
+    function tick() {
+      const diff = endsAt * 1000 - Date.now()
+      if (diff <= 0) { setTimeLeft('EXPIRED'); return }
+      const d = Math.floor(diff / 86400000)
+      const h = Math.floor((diff % 86400000) / 3600000)
+      const m = Math.floor((diff % 3600000) / 60000)
+      const s = Math.floor((diff % 60000) / 1000)
+      setTimeLeft(`${d}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`)
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [endsAt])
+  return timeLeft
+}
+
 // ── Events / Boss Page ────────────────────────────────────────
+const EMBERS = Array.from({ length: 20 }, (_, i) => ({
+  id: i,
+  left:     `${(i * 5.3 + 2) % 100}%`,
+  delay:    `${(i * 0.37) % 7}s`,
+  duration: `${5 + (i % 5)}s`,
+  size:     `${2 + (i % 4)}px`,
+}))
+
 function EventsPage({ currentUser }) {
   const [data,    setData]    = useState(null)
   const [players, setPlayers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [hpFlash, setHpFlash] = useState(false)
+  const prevHpRef = useRef(null)
 
-  useEffect(() => {
-    Promise.all([
+  function loadData() {
+    return Promise.all([
       fetch('/api/boss').then(r => r.ok ? r.json() : null),
       fetch('/api/community').then(r => r.ok ? r.json() : []),
     ]).then(([bossData, communityData]) => {
+      if (bossData?.boss && prevHpRef.current !== null && bossData.boss.current_hp < prevHpRef.current) {
+        setHpFlash(true)
+        setTimeout(() => setHpFlash(false), 600)
+      }
+      if (bossData?.boss) prevHpRef.current = bossData.boss.current_hp
       setData(bossData)
       setPlayers(communityData || [])
       setLoading(false)
     })
+  }
+
+  useEffect(() => {
+    loadData()
+    const id = setInterval(loadData, 30000)
+    return () => clearInterval(id)
   }, [])
 
-  if (loading) return <div className="events-page"><p className="boss-loading">Loading…</p></div>
-  if (!data || !data.boss) return <div className="events-page"><p className="boss-loading">No active boss right now.</p></div>
+  if (loading) return <div className="eq-page"><p className="eq-loading">Loading…</p></div>
+  if (!data?.boss) return <div className="eq-page"><p className="eq-loading">No active boss right now.</p></div>
 
-  const { boss, contributors } = data
+  const { boss, contributors, activity = [] } = data
   const hpPct    = Math.max(0, (boss.current_hp / boss.max_hp) * 100)
-  const myDmg    = contributors.find(c => c.username === currentUser)?.damage || 0
   const totalDmg = boss.max_hp - boss.current_hp
-  const hpColor  = hpPct > 50 ? '#e53e3e' : hpPct > 25 ? '#dd6b20' : '#c53030'
+  const myDmg    = contributors.find(c => c.username === currentUser)?.damage || 0
+  const myRank   = contributors.findIndex(c => c.username === currentUser) + 1
+  const phase    = getBossPhase(hpPct)
+  const endsAt   = boss.started_at + 14 * 86400
+  const countdown = useCountdown(endsAt)
+  const mvpUser  = contributors[0]?.username
 
-  // Pad players to 4 slots
   const slots = [...players]
   while (slots.length < 4) slots.push(null)
 
-  const playerSlot = (p, i) => {
-    if (!p) return (
-      <div key={i} className="boss-player-slot empty">
-        <div className="bps-avatar">?</div>
-        <div className="bps-name">—</div>
-        <div className="bps-level">Lv —</div>
-        <div className="bps-bar-track"><div className="bps-bar-fill" style={{ width: '0%' }} /></div>
-      </div>
-    )
-    const totalXP   = p.totalXP || 0
-    const level     = Math.floor(totalXP / XP_PER_LEVEL) + 1
-    const xpInLevel = totalXP % XP_PER_LEVEL
-    const lvPct     = (xpInLevel / XP_PER_LEVEL) * 100
-    const isMe      = p.username === currentUser
-    return (
-      <div key={p.username} className={`boss-player-slot${isMe ? ' me' : ''}`}>
-        <div className="bps-avatar">{p.username[0].toUpperCase()}</div>
-        <div className="bps-name">{p.username}</div>
-        <div className="bps-level">Lv {level}</div>
-        <div className="bps-bar-track">
-          <div className="bps-bar-fill" style={{ width: `${lvPct}%` }} />
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="events-page">
+    <div className="eq-page">
 
-      {/* Boss card */}
-      <div className="boss-arena"
-        style={{
-          backgroundImage: `linear-gradient(180deg, rgba(8,8,20,0.75) 0%, rgba(14,18,42,0.70) 50%, rgba(6,24,48,0.80) 100%), url(/boss.png)`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center 25%',
-        }}
-      >
-        <div className="boss-title-row">
-          <span className="boss-event-label">⚔️ Community Event</span>
-        </div>
-        <div className="boss-name-plate">{boss.name}</div>
-        <div className="boss-hp-section">
-          <div className="boss-hp-label">
-            <span>HP</span>
-            <span>{boss.current_hp.toLocaleString()} / {boss.max_hp.toLocaleString()}</span>
+      {/* Floating embers */}
+      <div className="eq-embers" aria-hidden="true">
+        {EMBERS.map(e => (
+          <div key={e.id} className="eq-ember" style={{ left: e.left, animationDelay: e.delay, animationDuration: e.duration, width: e.size, height: e.size }} />
+        ))}
+      </div>
+
+      {/* ── Boss Section ── */}
+      <div className="eq-boss-section">
+        <div className="eq-boss-bg" />
+        <div className="eq-boss-vignette" />
+        <div className="eq-boss-content">
+          <div className="eq-event-badge">⚔ Community Raid</div>
+          <div className="eq-phase-badge" style={{ color: phase.color, borderColor: phase.color + '66' }}>{phase.label}</div>
+          <h1 className="eq-boss-name">{boss.name}</h1>
+          <div className={`eq-hp-wrap${hpFlash ? ' flash' : ''}`}>
+            <div className="eq-hp-header">
+              <span className="eq-hp-label">HP</span>
+              <span className="eq-hp-nums">{boss.current_hp.toLocaleString()} <span className="eq-hp-sep">/</span> {boss.max_hp.toLocaleString()}</span>
+            </div>
+            <div className="eq-hp-track">
+              <div className="eq-hp-fill" style={{ width: `${hpPct}%` }} />
+            </div>
+            <div className="eq-hp-meta">{hpPct.toFixed(1)}% remaining · {totalDmg.toLocaleString()} total damage dealt</div>
           </div>
-          <div className="boss-hp-track">
-            <div className="boss-hp-fill" style={{ width: `${hpPct}%`, background: hpColor }} />
+          <div className="eq-timer">
+            <span className="eq-timer-icon">⏳</span>
+            <span className="eq-timer-label">Event ends in</span>
+            <span className="eq-timer-value">{countdown}</span>
           </div>
-          <div className="boss-hp-sub">{hpPct.toFixed(1)}% remaining · {totalDmg.toLocaleString()} damage dealt</div>
-        </div>
-        <div className="boss-your-dmg">
-          Your contribution: <strong>{myDmg.toLocaleString()} dmg</strong>
         </div>
       </div>
 
-      {/* Player bar — full width */}
-      <div className="boss-players-bar">
-        {slots.slice(0, 4).map(playerSlot)}
+      {/* ── Party Row ── */}
+      <div className="eq-party-row">
+        {slots.slice(0, 4).map((p, i) => {
+          if (!p) return (
+            <div key={i} className="eq-player-card empty">
+              <div className="eq-pc-avatar">?</div>
+              <div className="eq-pc-name">—</div>
+              <div className="eq-pc-class-name">Awaiting Hero</div>
+              <div className="eq-pc-bar-track"><div className="eq-pc-bar-fill" style={{ width: '0%' }} /></div>
+            </div>
+          )
+          const totalXP   = p.totalXP || 0
+          const level     = Math.floor(totalXP / XP_PER_LEVEL) + 1
+          const lvPct     = ((totalXP % XP_PER_LEVEL) / XP_PER_LEVEL) * 100
+          const cls       = getPlayerClass(p)
+          const pDmg      = contributors.find(c => c.username === p.username)?.damage || 0
+          const isMvp     = p.username === mvpUser && pDmg > 0
+          const isMe      = p.username === currentUser
+          return (
+            <div key={p.username} className={`eq-player-card${isMe ? ' me' : ''}${isMvp ? ' mvp' : ''}`}>
+              {isMvp && <div className="eq-mvp-badge">MVP</div>}
+              <div className="eq-pc-class-icon">{cls.icon}</div>
+              <div className="eq-pc-avatar">{p.username[0].toUpperCase()}</div>
+              <div className="eq-pc-name">{p.username}</div>
+              <div className="eq-pc-level-row">
+                <span className="eq-pc-level">Lv {level}</span>
+                <span className="eq-pc-class-name">{cls.name}</span>
+              </div>
+              {pDmg > 0 && <div className="eq-pc-dmg">{pDmg.toLocaleString()} dmg</div>}
+              <div className="eq-pc-bar-track">
+                <div className="eq-pc-bar-fill" style={{ width: `${lvPct}%` }} />
+              </div>
+            </div>
+          )
+        })}
       </div>
 
-      {/* Damage board */}
-      <div className="boss-contributors">
-        <h3 className="boss-contrib-title">Damage Board</h3>
-        {contributors.length === 0 ? (
-          <p className="boss-no-contrib">No damage yet — earn XP to attack!</p>
-        ) : (
-          <div className="boss-contrib-list">
-            {contributors.map((c, i) => {
-              const pct = totalDmg > 0 ? (c.damage / totalDmg) * 100 : 0
-              return (
-                <div key={c.username} className={`boss-contrib-row${c.username === currentUser ? ' you' : ''}`}>
-                  <span className="contrib-rank">#{i + 1}</span>
-                  <span className="contrib-name">{c.username}{c.username === currentUser ? ' (you)' : ''}</span>
-                  <div className="contrib-bar-wrap">
-                    <div className="contrib-bar-fill" style={{ width: `${pct}%`, background: hpColor }} />
+      {/* ── Lower: Damage Board + Activity Feed ── */}
+      <div className="eq-lower">
+
+        <div className="eq-leaderboard">
+          <h2 className="eq-section-title">⚔ Damage Board</h2>
+          {contributors.length === 0 ? (
+            <p className="eq-empty-state">No damage dealt yet. Begin your assault!</p>
+          ) : (
+            <div className="eq-lb-list">
+              {contributors.map((c, i) => {
+                const pct = totalDmg > 0 ? (c.damage / totalDmg) * 100 : 0
+                const rankIcon = ['💀', '🩸', '🔥'][i] ?? `#${i + 1}`
+                return (
+                  <div key={c.username} className={`eq-lb-row${c.username === currentUser ? ' you' : ''}${i === 0 ? ' first' : ''}`}>
+                    <span className="eq-lb-rank">{rankIcon}</span>
+                    <span className="eq-lb-name">{c.username}{c.username === currentUser ? ' ✦' : ''}</span>
+                    <div className="eq-lb-bar-wrap">
+                      <div className="eq-lb-bar-fill" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="eq-lb-dmg">{c.damage.toLocaleString()}</span>
                   </div>
-                  <span className="contrib-dmg">{c.damage.toLocaleString()}</span>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
+                )
+              })}
+            </div>
+          )}
+          {myRank > 0 && (
+            <div className="eq-lb-your-rank">
+              <span>Your Rank</span>
+              <span>#{myRank} · {myDmg.toLocaleString()} dmg · 1 XP = 1 dmg</span>
+            </div>
+          )}
+        </div>
 
-      <p className="boss-hint">Every XP you earn deals damage. Work out to bring it down!</p>
+        <div className="eq-feed">
+          <h2 className="eq-section-title">📜 Recent Attacks</h2>
+          {activity.length === 0 ? (
+            <p className="eq-empty-state">No activity yet — strike first!</p>
+          ) : (
+            <div className="eq-feed-list">
+              {activity.map((a, i) => (
+                <div key={i} className={`eq-feed-row${a.username === currentUser ? ' you' : ''}`}>
+                  <span className="eq-feed-icon">{getFeedIcon(a.description)}</span>
+                  <div className="eq-feed-text">
+                    <span className="eq-feed-user">{a.username}</span>
+                    <span className="eq-feed-desc"> dealt <strong>{a.damage.toLocaleString()} dmg</strong> via {a.description}</span>
+                  </div>
+                  <span className="eq-feed-time">{getTimeAgo(a.created_at)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+      </div>
     </div>
   )
 }

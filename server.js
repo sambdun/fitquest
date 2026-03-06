@@ -78,6 +78,15 @@ db.exec(`
     damage   INTEGER DEFAULT 0,
     PRIMARY KEY (boss_id, user_id)
   );
+
+  CREATE TABLE IF NOT EXISTS boss_activity (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    boss_id     INTEGER NOT NULL,
+    user_id     INTEGER NOT NULL,
+    description TEXT NOT NULL,
+    damage      INTEGER NOT NULL,
+    created_at  INTEGER DEFAULT (unixepoch())
+  );
 `)
 
 // ── Boss System ───────────────────────────────────────────────
@@ -100,7 +109,7 @@ if (!activeBoss) {
   }
 }
 
-function damageBoss(userId, amount) {
+function damageBoss(userId, amount, desc) {
   const boss = db.prepare('SELECT * FROM boss_events WHERE defeated_at IS NULL ORDER BY id DESC LIMIT 1').get()
   if (!boss) return
   const newHp = Math.max(0, boss.current_hp - amount)
@@ -109,6 +118,8 @@ function damageBoss(userId, amount) {
     INSERT INTO boss_damage (boss_id, user_id, damage) VALUES (?, ?, ?)
     ON CONFLICT(boss_id, user_id) DO UPDATE SET damage = damage + ?
   `).run(boss.id, userId, amount, amount)
+  db.prepare('INSERT INTO boss_activity (boss_id, user_id, description, damage) VALUES (?, ?, ?, ?)')
+    .run(boss.id, userId, desc || 'Workout', amount)
   if (newHp <= 0) {
     db.prepare('UPDATE boss_events SET defeated_at = unixepoch() WHERE id = ?').run(boss.id)
     db.prepare('INSERT INTO boss_events (name, max_hp, current_hp) VALUES (?, ?, ?)')
@@ -257,7 +268,7 @@ app.post('/api/complete', requireLogin, (req, res) => {
       db.prepare(
         `UPDATE user_xp SET ${catColumn} = ${catColumn} + ? WHERE user_id = ?`
       ).run(XP_PER_WORKOUT, userId)
-      damageBoss(userId, XP_PER_WORKOUT)
+      damageBoss(userId, XP_PER_WORKOUT, category + ' Workout')
     }
 
     const xpRow = db.prepare('SELECT * FROM user_xp WHERE user_id = ?').get(userId)
@@ -289,7 +300,7 @@ app.post('/api/runs', requireLogin, (req, res) => {
   db.prepare('INSERT OR IGNORE INTO user_completed (user_id, workout_id, date) VALUES (?, ?, ?)')
     .run(userId, 'cardio-run', todayKey())
   db.prepare('UPDATE user_xp SET cardio_xp = cardio_xp + ? WHERE user_id = ?').run(xp, userId)
-  damageBoss(userId, xp)
+  damageBoss(userId, xp, miles + 'mi Run')
 
   const xpRow = db.prepare('SELECT * FROM user_xp WHERE user_id = ?').get(userId)
   res.json({
@@ -378,7 +389,7 @@ app.post('/api/journal', requireLogin, (req, res) => {
     .run(userId, date, entry.trim(), JOURNAL_XP)
   db.prepare(`UPDATE user_xp SET ${col} = ${col} + ? WHERE user_id = ?`)
     .run(JOURNAL_XP, userId)
-  damageBoss(userId, JOURNAL_XP)
+  damageBoss(userId, JOURNAL_XP, 'Journal Entry')
 
   const updated = db.prepare('SELECT * FROM user_xp WHERE user_id = ?').get(userId)
   res.json({
@@ -418,7 +429,7 @@ app.get('/api/boss', requireLogin, (req, res) => {
   const boss = db.prepare(
     'SELECT * FROM boss_events WHERE defeated_at IS NULL ORDER BY id DESC LIMIT 1'
   ).get()
-  if (!boss) return res.json({ boss: null, contributors: [] })
+  if (!boss) return res.json({ boss: null, contributors: [], activity: [] })
 
   const contributors = db.prepare(`
     SELECT u.username, bd.damage
@@ -428,7 +439,16 @@ app.get('/api/boss', requireLogin, (req, res) => {
     ORDER BY bd.damage DESC
   `).all(boss.id)
 
-  res.json({ boss, contributors })
+  const activity = db.prepare(`
+    SELECT u.username, ba.description, ba.damage, ba.created_at
+    FROM boss_activity ba
+    JOIN users u ON u.id = ba.user_id
+    WHERE ba.boss_id = ?
+    ORDER BY ba.created_at DESC
+    LIMIT 20
+  `).all(boss.id)
+
+  res.json({ boss, contributors, activity })
 })
 
 // ── Static Files ──────────────────────────────────────────────
