@@ -1539,6 +1539,10 @@ function EventsPage({ currentUser }) {
     return () => clearInterval(id)
   }, [])
 
+  // Hooks must be called unconditionally — compute endsAt before any early returns
+  const endsAt   = data?.boss ? data.boss.started_at + 14 * 86400 : 0
+  const countdown = useCountdown(endsAt)
+
   if (loading) return <div className="eq-page"><p className="eq-loading">Loading…</p></div>
   if (!data?.boss) return <div className="eq-page"><p className="eq-loading">No active boss right now.</p></div>
 
@@ -1548,8 +1552,6 @@ function EventsPage({ currentUser }) {
   const myDmg    = contributors.find(c => c.username === currentUser)?.damage || 0
   const myRank   = contributors.findIndex(c => c.username === currentUser) + 1
   const phase    = getBossPhase(hpPct)
-  const endsAt   = boss.started_at + 14 * 86400
-  const countdown = useCountdown(endsAt)
   const mvpUser  = contributors[0]?.username
 
   const slots = [...players]
