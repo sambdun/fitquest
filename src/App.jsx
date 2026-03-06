@@ -1502,12 +1502,13 @@ function useCountdown(endsAt) {
 }
 
 // ── Events / Boss Page ────────────────────────────────────────
-const EMBERS = Array.from({ length: 20 }, (_, i) => ({
+const EMBERS = Array.from({ length: 40 }, (_, i) => ({
   id: i,
-  left:     `${(i * 5.3 + 2) % 100}%`,
-  delay:    `${(i * 0.37) % 7}s`,
-  duration: `${5 + (i % 5)}s`,
-  size:     `${2 + (i % 4)}px`,
+  left:     `${(i * 2.6 + 1) % 100}%`,
+  delay:    `${(i * 0.19) % 8}s`,
+  duration: `${3.5 + (i % 6)}s`,
+  size:     `${3 + (i % 5)}px`,
+  bright:   i % 3 === 0,
 }))
 
 function EventsPage({ currentUser }) {
@@ -1563,7 +1564,7 @@ function EventsPage({ currentUser }) {
       {/* Floating embers */}
       <div className="eq-embers" aria-hidden="true">
         {EMBERS.map(e => (
-          <div key={e.id} className="eq-ember" style={{ left: e.left, animationDelay: e.delay, animationDuration: e.duration, width: e.size, height: e.size }} />
+          <div key={e.id} className={`eq-ember${e.bright ? ' bright' : ''}`} style={{ left: e.left, animationDelay: e.delay, animationDuration: e.duration, width: e.size, height: e.size }} />
         ))}
       </div>
 
