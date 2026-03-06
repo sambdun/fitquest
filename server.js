@@ -62,7 +62,59 @@ db.exec(`
     created_at INTEGER DEFAULT (unixepoch()),
     UNIQUE(user_id, date)
   );
+
+  CREATE TABLE IF NOT EXISTS boss_events (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT NOT NULL,
+    max_hp      INTEGER NOT NULL,
+    current_hp  INTEGER NOT NULL,
+    started_at  INTEGER DEFAULT (unixepoch()),
+    defeated_at INTEGER DEFAULT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS boss_damage (
+    boss_id  INTEGER,
+    user_id  INTEGER,
+    damage   INTEGER DEFAULT 0,
+    PRIMARY KEY (boss_id, user_id)
+  );
 `)
+
+// ── Boss System ───────────────────────────────────────────────
+const BOSS_MAX_HP = 50000
+const BOSS_NAME   = 'The Week Dragon'
+
+// Ensure active boss exists with current config
+const activeBoss = db.prepare('SELECT id FROM boss_events WHERE defeated_at IS NULL').get()
+if (!activeBoss) {
+  db.prepare('INSERT INTO boss_events (name, max_hp, current_hp) VALUES (?, ?, ?)')
+    .run(BOSS_NAME, BOSS_MAX_HP, BOSS_MAX_HP)
+} else {
+  // Update name/max_hp if config changed (preserve current_hp ratio)
+  const existing = db.prepare('SELECT * FROM boss_events WHERE defeated_at IS NULL ORDER BY id DESC LIMIT 1').get()
+  if (existing.name !== BOSS_NAME || existing.max_hp !== BOSS_MAX_HP) {
+    const ratio = existing.current_hp / existing.max_hp
+    const newHp = Math.round(BOSS_MAX_HP * ratio)
+    db.prepare('UPDATE boss_events SET name = ?, max_hp = ?, current_hp = ? WHERE id = ?')
+      .run(BOSS_NAME, BOSS_MAX_HP, newHp, existing.id)
+  }
+}
+
+function damageBoss(userId, amount) {
+  const boss = db.prepare('SELECT * FROM boss_events WHERE defeated_at IS NULL ORDER BY id DESC LIMIT 1').get()
+  if (!boss) return
+  const newHp = Math.max(0, boss.current_hp - amount)
+  db.prepare('UPDATE boss_events SET current_hp = ? WHERE id = ?').run(newHp, boss.id)
+  db.prepare(`
+    INSERT INTO boss_damage (boss_id, user_id, damage) VALUES (?, ?, ?)
+    ON CONFLICT(boss_id, user_id) DO UPDATE SET damage = damage + ?
+  `).run(boss.id, userId, amount, amount)
+  if (newHp <= 0) {
+    db.prepare('UPDATE boss_events SET defeated_at = unixepoch() WHERE id = ?').run(boss.id)
+    db.prepare('INSERT INTO boss_events (name, max_hp, current_hp) VALUES (?, ?, ?)')
+      .run(BOSS_NAME, BOSS_MAX_HP, BOSS_MAX_HP)
+  }
+}
 
 // ── App ───────────────────────────────────────────────────────
 const app = express()
@@ -205,6 +257,7 @@ app.post('/api/complete', requireLogin, (req, res) => {
       db.prepare(
         `UPDATE user_xp SET ${catColumn} = ${catColumn} + ? WHERE user_id = ?`
       ).run(XP_PER_WORKOUT, userId)
+      damageBoss(userId, XP_PER_WORKOUT)
     }
 
     const xpRow = db.prepare('SELECT * FROM user_xp WHERE user_id = ?').get(userId)
@@ -236,6 +289,7 @@ app.post('/api/runs', requireLogin, (req, res) => {
   db.prepare('INSERT OR IGNORE INTO user_completed (user_id, workout_id, date) VALUES (?, ?, ?)')
     .run(userId, 'cardio-run', todayKey())
   db.prepare('UPDATE user_xp SET cardio_xp = cardio_xp + ? WHERE user_id = ?').run(xp, userId)
+  damageBoss(userId, xp)
 
   const xpRow = db.prepare('SELECT * FROM user_xp WHERE user_id = ?').get(userId)
   res.json({
@@ -324,6 +378,7 @@ app.post('/api/journal', requireLogin, (req, res) => {
     .run(userId, date, entry.trim(), JOURNAL_XP)
   db.prepare(`UPDATE user_xp SET ${col} = ${col} + ? WHERE user_id = ?`)
     .run(JOURNAL_XP, userId)
+  damageBoss(userId, JOURNAL_XP)
 
   const updated = db.prepare('SELECT * FROM user_xp WHERE user_id = ?').get(userId)
   res.json({
@@ -357,6 +412,23 @@ app.get('/api/community', requireLogin, (req, res) => {
   }))
 
   res.json(players)
+})
+
+app.get('/api/boss', requireLogin, (req, res) => {
+  const boss = db.prepare(
+    'SELECT * FROM boss_events WHERE defeated_at IS NULL ORDER BY id DESC LIMIT 1'
+  ).get()
+  if (!boss) return res.json({ boss: null, contributors: [] })
+
+  const contributors = db.prepare(`
+    SELECT u.username, bd.damage
+    FROM boss_damage bd
+    JOIN users u ON u.id = bd.user_id
+    WHERE bd.boss_id = ?
+    ORDER BY bd.damage DESC
+  `).all(boss.id)
+
+  res.json({ boss, contributors })
 })
 
 // ── Static Files ──────────────────────────────────────────────

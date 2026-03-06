@@ -1047,7 +1047,7 @@ function WorkoutPanel({ category, workouts, completed, onComplete, onAddWorkout,
   const customList  = workouts[category] || []
   const list        = category === 'Strength' ? [...dayWorkouts, ...customList] : customList
   const runDone     = category === 'Cardio' && completed.includes('cardio-run')
-  const doneToday   = list.filter(w => completed.includes(w.id)).length + (runDone ? 1 : 0)
+  const doneToday   = list.filter(w => completed.includes(String(w.id))).length + (runDone ? 1 : 0)
   const totalCount  = list.length + (category === 'Cardio' ? 1 : 0)
 
   return (
@@ -1083,7 +1083,7 @@ function WorkoutPanel({ category, workouts, completed, onComplete, onAddWorkout,
           <WorkoutCard
             key={w.id}
             workout={w}
-            done={completed.includes(w.id)}
+            done={completed.includes(String(w.id))}
             onComplete={() => onComplete(w.id, category)}
             onEdit={() => setEditingWorkout(w)}
             catColor={col.bar}
@@ -1444,6 +1444,89 @@ function CommunityPage({ currentUser }) {
   )
 }
 
+// ── Events / Boss Page ────────────────────────────────────────
+function EventsPage({ currentUser }) {
+  const [data,      setData]      = useState(null)
+  const [loading,   setLoading]   = useState(true)
+  const [justSlain, setJustSlain] = useState(false)
+
+  function load() {
+    fetch('/api/boss')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { setData(d); setLoading(false) })
+  }
+
+  useEffect(() => { load() }, [])
+
+  if (loading) return <div className="events-page"><p className="boss-loading">Loading…</p></div>
+  if (!data || !data.boss) return <div className="events-page"><p className="boss-loading">No active boss right now.</p></div>
+
+  const { boss, contributors } = data
+  const hpPct   = Math.max(0, (boss.current_hp / boss.max_hp) * 100)
+  const myDmg   = contributors.find(c => c.username === currentUser)?.damage || 0
+  const totalDmg = boss.max_hp - boss.current_hp
+
+  const hpColor = hpPct > 50 ? '#e53e3e' : hpPct > 25 ? '#dd6b20' : '#c53030'
+
+  return (
+    <div className="events-page">
+      <div className="boss-arena">
+        <div className="boss-title-row">
+          <span className="boss-event-label">⚔️ Community Event</span>
+        </div>
+
+        <div className="boss-image-wrap">
+          <img src="/boss.png" alt={boss.name} className="boss-image" onError={e => { e.target.style.display = 'none' }} />
+          <div className="boss-name-plate">{boss.name}</div>
+        </div>
+
+        <div className="boss-hp-section">
+          <div className="boss-hp-label">
+            <span>HP</span>
+            <span>{boss.current_hp.toLocaleString()} / {boss.max_hp.toLocaleString()}</span>
+          </div>
+          <div className="boss-hp-track">
+            <div
+              className="boss-hp-fill"
+              style={{ width: `${hpPct}%`, background: hpColor }}
+            />
+          </div>
+          <div className="boss-hp-sub">{hpPct.toFixed(1)}% remaining · {totalDmg.toLocaleString()} damage dealt</div>
+        </div>
+
+        <div className="boss-your-dmg">
+          Your contribution: <strong>{myDmg.toLocaleString()} dmg</strong>
+        </div>
+      </div>
+
+      <div className="boss-contributors">
+        <h3 className="boss-contrib-title">Damage Board</h3>
+        {contributors.length === 0 ? (
+          <p className="boss-no-contrib">No damage yet — earn XP to attack!</p>
+        ) : (
+          <div className="boss-contrib-list">
+            {contributors.map((c, i) => {
+              const pct = totalDmg > 0 ? (c.damage / totalDmg) * 100 : 0
+              return (
+                <div key={c.username} className={`boss-contrib-row${c.username === currentUser ? ' you' : ''}`}>
+                  <span className="contrib-rank">#{i + 1}</span>
+                  <span className="contrib-name">{c.username}{c.username === currentUser ? ' (you)' : ''}</span>
+                  <div className="contrib-bar-wrap">
+                    <div className="contrib-bar-fill" style={{ width: `${pct}%`, background: hpColor }} />
+                  </div>
+                  <span className="contrib-dmg">{c.damage.toLocaleString()}</span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      <p className="boss-hint">Every XP you earn deals damage. Work out to bring it down!</p>
+    </div>
+  )
+}
+
 // ── App ───────────────────────────────────────────────────────
 export default function App() {
   const [user,         setUser]         = useState(null)
@@ -1651,6 +1734,12 @@ export default function App() {
           >
             📓 Journal
           </button>
+          <button
+            className={`nav-link${page === 'events' ? ' active' : ''}`}
+            onClick={() => setPage('events')}
+          >
+            ⚔️ Events
+          </button>
         </nav>
         {page === 'dashboard' && (
           <CategoryDropdown active={activeCategory} onChange={setActiveCategory} />
@@ -1670,6 +1759,8 @@ export default function App() {
         <JournalPage onXPAwarded={setCategoryXP} />
       ) : page === 'guidebook' ? (
         <GuidebookPage workouts={workouts} onAddToWorkouts={handleAddWorkout} />
+      ) : page === 'events' ? (
+        <EventsPage currentUser={user.username} />
       ) : (
         <>
           {/* Hero */}
