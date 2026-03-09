@@ -2025,6 +2025,31 @@ function PremiumPage() {
         </div>
 
       </div>
+
+      <div className="reviews-ticker-section">
+        <div className="reviews-ticker-label">What people are saying</div>
+        <div className="reviews-ticker-wrap">
+          <div className="reviews-ticker">
+            {[
+              { name: 'Marcus T.', quote: 'Simple but actually motivating.', body: 'I like that it doesn\'t try to force a specific workout plan on you. I just log what I already do at the gym and the XP system makes it weirdly satisfying to stay consistent.' },
+              { name: 'Jordan R.', quote: 'Finally a fitness app that feels like a game.', body: 'The daily quests and leaderboard with my friends make it way more fun than tracking workouts alone. It\'s simple, but it works.' },
+              { name: 'Priya S.', quote: 'Great idea executed well.', body: 'I was tired of complicated fitness apps. FitQuest is straightforward: log workouts, earn XP, compete with friends. That\'s basically all I needed.' },
+              { name: 'Devon L.', quote: 'Helped me stay consistent.', body: 'The community aspect makes a big difference. Seeing my friends on the leaderboard pushes me to show up even on days I\'d normally skip.' },
+              { name: 'Marcus T.', quote: 'Simple but actually motivating.', body: 'I like that it doesn\'t try to force a specific workout plan on you. I just log what I already do at the gym and the XP system makes it weirdly satisfying to stay consistent.' },
+              { name: 'Jordan R.', quote: 'Finally a fitness app that feels like a game.', body: 'The daily quests and leaderboard with my friends make it way more fun than tracking workouts alone. It\'s simple, but it works.' },
+              { name: 'Priya S.', quote: 'Great idea executed well.', body: 'I was tired of complicated fitness apps. FitQuest is straightforward: log workouts, earn XP, compete with friends. That\'s basically all I needed.' },
+              { name: 'Devon L.', quote: 'Helped me stay consistent.', body: 'The community aspect makes a big difference. Seeing my friends on the leaderboard pushes me to show up even on days I\'d normally skip.' },
+            ].map((r, i) => (
+              <div key={i} className="review-card">
+                <div className="review-quote">"{r.quote}"</div>
+                <div className="review-body">{r.body}</div>
+                <div className="review-name">— {r.name}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
     </div>
   )
 }
