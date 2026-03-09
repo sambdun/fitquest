@@ -3,6 +3,7 @@ import './App.css'
 
 // ── Constants ────────────────────────────────────────────────
 const XP_PER_WORKOUT = 400
+const XP_BY_CATEGORY = { Strength: 50, Cardio: 400, Sports: 400, Activities: 400 }
 const XP_PER_LEVEL   = 5600
 
 const CATEGORIES = ['Strength', 'Cardio', 'Sports', 'Activities']
@@ -925,7 +926,7 @@ function RunningCard({ done, todayMiles, onRun, catColor }) {
   )
 }
 
-function WorkoutCard({ workout, done, onComplete, onEdit, catColor }) {
+function WorkoutCard({ workout, done, onComplete, onEdit, catColor, category }) {
   return (
     <div className={`workout-card${done ? ' done' : ''}`} style={done ? { borderColor: catColor + '66' } : {}}>
       <div className="workout-info">
@@ -949,7 +950,7 @@ function WorkoutCard({ workout, done, onComplete, onEdit, catColor }) {
               <circle cx="10" cy="10" r="9" fill={catColor} />
               <path d="M6 10.5l3 3 5-5.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-          ) : `+${XP_PER_WORKOUT} XP`}
+          ) : `+${XP_BY_CATEGORY[category] ?? XP_PER_WORKOUT} XP`}
         </button>
       </div>
     </div>
@@ -1087,6 +1088,7 @@ function WorkoutPanel({ category, workouts, completed, onComplete, onAddWorkout,
             onComplete={() => onComplete(w.id, category)}
             onEdit={() => setEditingWorkout(w)}
             catColor={col.bar}
+            category={category}
           />
         ))}
       </div>
