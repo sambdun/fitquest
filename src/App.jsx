@@ -1955,6 +1955,101 @@ function ProfilePanel({ user, categoryXP, onLogout, onClose }) {
   )
 }
 
+// ── About Page ────────────────────────────────────────────────
+function AboutPage() {
+  return (
+    <div className="about-page">
+      <div className="about-hero">
+        <div className="about-hero-inner">
+          <div className="about-eyebrow">Our Story</div>
+          <h1>Built for the person who's tired of being told what to do.</h1>
+          <p>FitQuest was created in 2026 — when fitness advice had never been louder, and never been less useful.</p>
+        </div>
+      </div>
+
+      <div className="about-body">
+
+        <div className="about-section">
+          <div className="about-section-label">The Problem</div>
+          <h2>Social media broke fitness.</h2>
+          <p>
+            Open any app in 2026 and you're immediately hit with someone telling you exactly how to eat, exactly how to train, exactly which routine will transform your body in 30 days. Influencers, coaches, algorithms — all competing for your attention with the most extreme, most confident take.
+          </p>
+          <p>
+            The problem? None of it is built for <em>you</em>. It's built for engagement. The advice that gets the most views isn't the advice that fits your life, your schedule, your goals, or your body. It's noise dressed up as expertise.
+          </p>
+          <p>
+            And so most people do one of two things: they follow a random plan for two weeks before losing motivation, or they never start at all because they don't know where to begin.
+          </p>
+        </div>
+
+        <div className="about-divider" />
+
+        <div className="about-section">
+          <div className="about-section-label">The Other Problem</div>
+          <h2>Working out alone is hard.</h2>
+          <p>
+            Even when you have a plan, consistency is brutal in isolation. The days you don't feel like going, there's nothing pulling you forward. No one checking in. No one to compete with, commiserate with, or celebrate with.
+          </p>
+          <p>
+            Fitness has always been more fun with friends — but there was never a real way to make that happen across different gyms, different schedules, different sports.
+          </p>
+        </div>
+
+        <div className="about-divider" />
+
+        <div className="about-section">
+          <div className="about-section-label">Why We Built FitQuest</div>
+          <h2>Your fitness. Your rules. Your crew.</h2>
+          <p>
+            FitQuest started as a simple idea: what if staying fit felt more like playing a game with your friends than following someone else's program?
+          </p>
+          <p>
+            We built a platform where <strong>you</strong> define your workouts — strength, cardio, sports, activities — and earn XP for doing them. Not someone else's workouts. Yours. The ones you actually like. The ones that fit your week.
+          </p>
+          <p>
+            We added a community layer so your friends are on the same leaderboard, fighting the same bosses, logging their wins alongside yours. Competition, accountability, shared momentum — without anyone preaching at you.
+          </p>
+          <p>
+            And for anyone who genuinely doesn't know where to start, we built the Guidebook — a no-nonsense library of workouts across every category, ready to pull into your routine whenever you want.
+          </p>
+        </div>
+
+        <div className="about-divider" />
+
+        <div className="about-features">
+          <div className="about-feature-card">
+            <div className="about-feature-icon">⚡</div>
+            <div className="about-feature-title">XP for your real workouts</div>
+            <div className="about-feature-desc">Log what you actually do — gym, runs, sports, anything. Every session moves you forward.</div>
+          </div>
+          <div className="about-feature-card">
+            <div className="about-feature-icon">🌍</div>
+            <div className="about-feature-title">Community & leaderboard</div>
+            <div className="about-feature-desc">See where your friends are at. Compete on the leaderboard. Fight community bosses together.</div>
+          </div>
+          <div className="about-feature-card">
+            <div className="about-feature-icon">📖</div>
+            <div className="about-feature-title">Guidebook to get started</div>
+            <div className="about-feature-desc">Not sure what to do? Browse real workouts across strength, cardio, sports and activities — add any to your list in one tap.</div>
+          </div>
+          <div className="about-feature-card">
+            <div className="about-feature-icon">👺</div>
+            <div className="about-feature-title">Daily quests that reset</div>
+            <div className="about-feature-desc">Every day is a new goblin to slay. Show up, do the work, clear the board. Simple.</div>
+          </div>
+        </div>
+
+        <div className="about-closing">
+          <p>FitQuest isn't about being the most optimized version of yourself. It's about showing up, doing something you like, and doing it with people you care about.</p>
+          <p>That's it. That's the whole thing.</p>
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
 // ── App ───────────────────────────────────────────────────────
 export default function App() {
   const [user,         setUser]         = useState(null)
@@ -2175,6 +2270,12 @@ export default function App() {
           >
             👺 Daily
           </button>
+          <button
+            className={`nav-link${page === 'about' ? ' active' : ''}`}
+            onClick={() => setPage('about')}
+          >
+            About
+          </button>
         </nav>
         {page === 'dashboard' && (
           <CategoryDropdown active={activeCategory} onChange={setActiveCategory} />
@@ -2196,7 +2297,9 @@ export default function App() {
         />
       )}
 
-      {page === 'community' ? (
+      {page === 'about' ? (
+        <AboutPage />
+      ) : page === 'community' ? (
         <CommunityPage currentUser={user.username} />
       ) : page === 'journal' ? (
         <JournalPage onXPAwarded={setCategoryXP} />

@@ -624,6 +624,85 @@
 .miles-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(137,207,240,0.2); }
 
 /* ══════════════════════════════════════════
+   About Page
+══════════════════════════════════════════ */
+.about-page { min-height: 100vh; }
+
+.about-hero {
+  background: linear-gradient(135deg, #0f1c2e 0%, #1a2f47 60%, #0d2137 100%);
+  padding: 80px 40px 72px;
+  text-align: center;
+}
+.about-hero-inner { max-width: 680px; margin: 0 auto; }
+.about-eyebrow {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--blue); margin-bottom: 20px;
+}
+.about-hero h1 {
+  font-family: 'Barlow', sans-serif;
+  font-size: clamp(28px, 4vw, 46px);
+  font-weight: 800; line-height: 1.15;
+  color: #fff; margin-bottom: 18px; letter-spacing: -0.02em;
+}
+.about-hero p { font-size: 17px; color: rgba(255,255,255,0.6); line-height: 1.7; }
+
+.about-body { max-width: 720px; margin: 0 auto; padding: 64px 32px 80px; }
+
+.about-section { margin-bottom: 12px; }
+.about-section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--blue-dark); margin-bottom: 10px;
+}
+.about-section h2 {
+  font-family: 'Barlow', sans-serif;
+  font-size: 26px; font-weight: 800;
+  color: var(--text); margin-bottom: 16px; letter-spacing: -0.01em;
+}
+.about-section p {
+  font-size: 16px; color: var(--text-mid); line-height: 1.75;
+  margin-bottom: 14px;
+}
+.about-section p em { color: var(--text); font-style: normal; font-weight: 600; }
+.about-section p strong { color: var(--text); }
+
+.about-divider {
+  height: 1px; background: var(--border);
+  margin: 48px 0;
+}
+
+.about-features {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px; margin: 48px 0;
+}
+.about-feature-card {
+  background: var(--blue-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px; padding: 24px;
+}
+.about-feature-icon { font-size: 28px; margin-bottom: 12px; }
+.about-feature-title {
+  font-size: 15px; font-weight: 700;
+  color: var(--text); margin-bottom: 6px;
+}
+.about-feature-desc { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
+
+.about-closing {
+  border-top: 1px solid var(--border);
+  padding-top: 40px; text-align: center;
+}
+.about-closing p {
+  font-size: 18px; color: var(--text-mid);
+  line-height: 1.7; margin-bottom: 10px;
+  font-style: italic;
+}
+
+@media (max-width: 600px) {
+  .about-hero { padding: 48px 20px; }
+  .about-body { padding: 40px 20px 60px; }
+  .about-features { grid-template-columns: 1fr; }
+}
+
+/* ══════════════════════════════════════════
    Journal Page
 ══════════════════════════════════════════ */
 .journal-page { max-width: 100%; padding: 32px 28px; }
