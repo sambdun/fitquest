@@ -495,7 +495,7 @@ app.get('/api/boss', requireLogin, (req, res) => {
 })
 
 // ── Daily Goblin ──────────────────────────────────────────────
-const GOBLIN_MAX_HP = 1500
+const GOBLIN_MAX_HP = 600
 
 app.get('/api/goblin', requireLogin, (req, res) => {
   const userId = req.session.userId

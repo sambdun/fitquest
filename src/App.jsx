@@ -1836,7 +1836,7 @@ function GoblinPage() {
             <div className="gl-guide-row"><span>🏃</span><span>1 Mile Run</span><span className="gl-guide-dmg">100 dmg</span></div>
             <div className="gl-guide-row"><span>📓</span><span>Journal Entry</span><span className="gl-guide-dmg">200 dmg</span></div>
             <div className="gl-guide-divider" />
-            <div className="gl-guide-row total"><span>🏆</span><span>Full Clear Needs</span><span className="gl-guide-dmg">1,500 dmg</span></div>
+            <div className="gl-guide-row total"><span>🏆</span><span>Full Clear Needs</span><span className="gl-guide-dmg">600 dmg</span></div>
           </div>
         </div>
       </div>
