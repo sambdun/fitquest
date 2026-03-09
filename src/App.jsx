@@ -1832,9 +1832,10 @@ function GoblinPage() {
         <div className="gl-guide">
           <h2 className="gl-section-title">📋 How to Win</h2>
           <div className="gl-guide-list">
-            <div className="gl-guide-row"><span>⚔️</span><span>1 Workout</span><span className="gl-guide-dmg">400 dmg</span></div>
+            <div className="gl-guide-row"><span>💪</span><span>1 Strength Exercise</span><span className="gl-guide-dmg">50 dmg</span></div>
+            <div className="gl-guide-row"><span>⚔️</span><span>1 Cardio/Sports Session</span><span className="gl-guide-dmg">100 dmg</span></div>
             <div className="gl-guide-row"><span>🏃</span><span>1 Mile Run</span><span className="gl-guide-dmg">100 dmg</span></div>
-            <div className="gl-guide-row"><span>📓</span><span>Journal Entry</span><span className="gl-guide-dmg">200 dmg</span></div>
+            <div className="gl-guide-row"><span>📓</span><span>Journal Entry</span><span className="gl-guide-dmg">100 dmg</span></div>
             <div className="gl-guide-divider" />
             <div className="gl-guide-row total"><span>🏆</span><span>Full Clear Needs</span><span className="gl-guide-dmg">600 dmg</span></div>
           </div>
