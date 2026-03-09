@@ -1325,6 +1325,7 @@
   position: relative;
   z-index: 2;
   padding: 24px 40px 28px;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1374,6 +1375,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 0;
 }
 .gl-goblin-img {
   max-height: 65%;
@@ -1381,6 +1383,9 @@
   object-fit: contain;
   filter: drop-shadow(0 0 30px rgba(56,161,105,0.6));
   animation: gl-goblin-idle 3s ease-in-out infinite;
+  mask-image: radial-gradient(ellipse 55% 60% at 50% 50%, black 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 55% 60% at 50% 50%, black 30%, transparent 80%);
+  opacity: 0.75;
 }
 @keyframes gl-goblin-idle {
   0%, 100% { transform: translateY(0) scale(1); }
@@ -1415,6 +1420,15 @@
 .gl-defeated-sub { font-size: 12px; color: rgba(255,255,255,0.4); letter-spacing: 0.06em; }
 
 /* Boss name */
+.gl-boss-name,
+.gl-hp-wrap,
+.gl-hint,
+.gl-daily-badge,
+.gl-phase-badge {
+  position: relative;
+  z-index: 1;
+}
+
 .gl-boss-name {
   font-family: 'Cinzel', Georgia, serif;
   font-size: 36px;
