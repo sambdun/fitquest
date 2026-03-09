@@ -280,7 +280,8 @@ app.post('/api/complete', requireLogin, (req, res) => {
   const date = reqDate && /^\d{4}-\d{2}-\d{2}$/.test(reqDate) ? reqDate : todayKey()
   if (date > todayKey()) return res.status(400).json({ error: 'Cannot complete future workouts' })
 
-  const XP_PER_WORKOUT = 400
+  const XP_BY_CATEGORY = { Strength: 50, Cardio: 400, Sports: 400, Activities: 400 }
+  const XP_PER_WORKOUT = XP_BY_CATEGORY[category] ?? 400
   const catColumn = {
     Strength:   'strength_xp',
     Cardio:     'cardio_xp',
@@ -500,21 +501,29 @@ app.get('/api/goblin', requireLogin, (req, res) => {
   const userId = req.session.userId
   const today  = todayKey()
 
-  const workoutsToday = db.prepare(
-    'SELECT COUNT(*) as n FROM user_completed WHERE user_id = ? AND date = ?'
+  const strengthToday = db.prepare(
+    `SELECT COUNT(*) as n FROM user_completed uc
+     JOIN user_workouts uw ON CAST(uc.workout_id AS INTEGER) = uw.id
+     WHERE uc.user_id = ? AND uc.date = ? AND uw.category = 'Strength'`
+  ).get(userId, today).n
+  const otherToday = db.prepare(
+    `SELECT COUNT(*) as n FROM user_completed uc
+     LEFT JOIN user_workouts uw ON CAST(uc.workout_id AS INTEGER) = uw.id
+     WHERE uc.user_id = ? AND uc.date = ? AND (uw.category IS NULL OR uw.category != 'Strength')`
   ).get(userId, today).n
 
   const runToday     = db.prepare('SELECT xp_awarded FROM user_runs    WHERE user_id = ? AND date = ?').get(userId, today)
   const journalToday = db.prepare('SELECT xp_awarded FROM user_journal WHERE user_id = ? AND date = ?').get(userId, today)
 
-  const workoutDmg = workoutsToday * 400
+  const workoutDmg = strengthToday * 50 + otherToday * 400
   const runDmg     = runToday?.xp_awarded     || 0
   const journalDmg = journalToday?.xp_awarded || 0
   const totalDmg   = workoutDmg + runDmg + journalDmg
   const currentHp  = Math.max(0, GOBLIN_MAX_HP - totalDmg)
 
   const activity = []
-  if (workoutDmg > 0) activity.push({ icon: '⚔️', desc: `${workoutsToday} workout${workoutsToday > 1 ? 's' : ''}`, dmg: workoutDmg })
+  const totalWorkouts = strengthToday + otherToday
+  if (workoutDmg > 0) activity.push({ icon: '⚔️', desc: `${totalWorkouts} workout${totalWorkouts > 1 ? 's' : ''}`, dmg: workoutDmg })
   if (runDmg     > 0) activity.push({ icon: '🏃', desc: "Today's run",    dmg: runDmg })
   if (journalDmg > 0) activity.push({ icon: '📓', desc: 'Journal entry',  dmg: journalDmg })
 
