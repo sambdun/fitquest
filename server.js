@@ -386,6 +386,17 @@ app.delete('/api/workouts/:id', requireLogin, (req, res) => {
 
 const JOURNAL_XP = 200
 
+app.get('/api/journal/feed', requireLogin, (req, res) => {
+  const entries = db.prepare(`
+    SELECT j.date, j.entry, u.username
+    FROM user_journal j
+    JOIN users u ON u.id = j.user_id
+    ORDER BY j.date DESC, j.id DESC
+    LIMIT 100
+  `).all()
+  res.json(entries)
+})
+
 app.get('/api/journal', requireLogin, (req, res) => {
   const entries = db.prepare(
     'SELECT date, entry, xp_awarded FROM user_journal WHERE user_id = ? ORDER BY date DESC'

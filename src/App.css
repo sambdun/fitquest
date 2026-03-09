@@ -626,7 +626,7 @@
 /* ══════════════════════════════════════════
    Journal Page
 ══════════════════════════════════════════ */
-.journal-page { max-width: 680px; margin: 0 auto; padding: 32px 20px; }
+.journal-page { max-width: 100%; padding: 32px 28px; }
 .journal-header { margin-bottom: 24px; }
 .journal-header h2 { font-family: 'Barlow', sans-serif; font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
 .journal-header p { font-size: 13px; color: var(--text-dim); }
@@ -641,7 +641,9 @@
 .journal-submit-row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
 .journal-char-count { font-size: 12px; color: var(--text-dim); }
 
-.journal-past h3 { font-family: 'Barlow', sans-serif; font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+.journal-past h3, .journal-feed h3 { font-family: 'Barlow', sans-serif; font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+.journal-feed { margin-top: 28px; }
+.journal-feed-user { font-weight: 700; color: var(--blue); margin-right: 8px; }
 .journal-list { display: flex; flex-direction: column; gap: 12px; }
 .journal-entry { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
 .journal-entry-date { font-size: 12px; font-weight: 600; color: var(--text-dim); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }

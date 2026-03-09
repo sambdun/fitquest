@@ -1292,11 +1292,16 @@ function AuthScreen({ onAuth }) {
 // ── Journal Page ─────────────────────────────────────────────
 function JournalPage({ onXPAwarded }) {
   const [entries,    setEntries]    = useState([])
+  const [feed,       setFeed]       = useState([])
   const [draft,      setDraft]      = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [flash,      setFlash]      = useState(null) // 'earned' | 'saved'
   const today = todayKey()
   const todayEntry = entries.find(e => e.date === today)
+
+  function loadFeed() {
+    fetch('/api/journal/feed').then(r => r.ok ? r.json() : []).then(setFeed)
+  }
 
   useEffect(() => {
     fetch('/api/journal')
@@ -1306,6 +1311,7 @@ function JournalPage({ onXPAwarded }) {
         const existing = data.find(e => e.date === todayKey())
         if (existing) setDraft(existing.entry)
       })
+    loadFeed()
   }, [])
 
   async function handleSubmit(e) {
@@ -1327,8 +1333,9 @@ function JournalPage({ onXPAwarded }) {
       setFlash('saved')
     }
     setTimeout(() => setFlash(null), 3000)
-    // Refresh entries
+    // Refresh entries and feed
     fetch('/api/journal').then(r => r.json()).then(setEntries)
+    loadFeed()
   }
 
   function formatDate(dateStr) {
@@ -1379,6 +1386,23 @@ function JournalPage({ onXPAwarded }) {
                 <div className="journal-entry-date">
                   {formatDate(e.date)}
                   {e.xp_awarded > 0 && <span className="journal-xp-badge">+{e.xp_awarded} XP</span>}
+                </div>
+                <p className="journal-entry-text">{e.entry}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {feed.length > 0 && (
+        <div className="journal-feed">
+          <h3>Community Feed</h3>
+          <div className="journal-list">
+            {feed.map((e, i) => (
+              <div key={i} className="journal-entry">
+                <div className="journal-entry-date">
+                  <span className="journal-feed-user">{e.username}</span>
+                  {formatDate(e.date)}
                 </div>
                 <p className="journal-entry-text">{e.entry}</p>
               </div>
