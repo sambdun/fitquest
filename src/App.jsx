@@ -1955,6 +1955,80 @@ function ProfilePanel({ user, categoryXP, onLogout, onClose }) {
   )
 }
 
+// ── Premium Page ──────────────────────────────────────────────
+function PremiumPage() {
+  return (
+    <div className="premium-page">
+
+      <div className="premium-hero">
+        <div className="premium-hero-inner">
+          <div className="premium-coming-soon">Coming Soon</div>
+          <h1>FitQuest <span className="premium-gold">Premium</span></h1>
+          <div className="premium-price">
+            <span className="premium-amount">$2</span>
+            <span className="premium-period">/ month</span>
+          </div>
+          <p>More monsters. More content. More crew. Everything that makes FitQuest addictive — turned all the way up.</p>
+        </div>
+      </div>
+
+      <div className="premium-body">
+
+        <div className="premium-grid">
+
+          <div className="premium-card featured">
+            <div className="premium-card-tag">DLC Packs</div>
+            <div className="premium-card-icon">🗡️</div>
+            <h3>New Content Drops</h3>
+            <p>Regular DLC packs with new themed worlds, unique boss mechanics, and exclusive workout challenges. New content every season — never the same game twice.</p>
+          </div>
+
+          <div className="premium-card">
+            <div className="premium-card-icon">👹</div>
+            <h3>New Monsters</h3>
+            <p>Face off against bigger, meaner, stranger enemies. Each monster comes with unique abilities, damage multipliers, and community raid mechanics that require real coordination to beat.</p>
+          </div>
+
+          <div className="premium-card">
+            <div className="premium-card-icon">🛡️</div>
+            <h3>Bigger Teams</h3>
+            <p>Bring more friends. Premium expands squad sizes so your whole gym crew, sports team, or friend group can fight together on the same boss — no one left behind.</p>
+          </div>
+
+          <div className="premium-card">
+            <div className="premium-card-icon">📚</div>
+            <h3>Expanded Workout Library</h3>
+            <p>Hundreds of additional workouts across every category. Sport-specific training plans, mobility routines, recovery days, and expert-curated programs built to actually fit your life.</p>
+          </div>
+
+          <div className="premium-card">
+            <div className="premium-card-icon">🏆</div>
+            <h3>Exclusive Titles & Gear</h3>
+            <p>Premium members unlock rare class titles, cosmetic badge effects, and profile gear that can't be earned any other way. Show your crew you mean business.</p>
+          </div>
+
+          <div className="premium-card">
+            <div className="premium-card-icon">⚡</div>
+            <h3>Priority Features</h3>
+            <p>Premium users get early access to every new feature before it goes live — and direct input on what gets built next. You're not just playing the game, you're shaping it.</p>
+          </div>
+
+        </div>
+
+        <div className="premium-cta-block">
+          <div className="premium-cta-price">
+            <span>All of this</span>
+            <span className="premium-cta-amount">$2 / month</span>
+          </div>
+          <p>Less than a coffee. More than a gym selfie.</p>
+          <div className="premium-notify-btn">Notify Me When It Launches</div>
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
 // ── About Page ────────────────────────────────────────────────
 function AboutPage() {
   return (
@@ -2276,6 +2350,12 @@ export default function App() {
           >
             About
           </button>
+          <button
+            className={`nav-link${page === 'premium' ? ' active' : ''}`}
+            onClick={() => setPage('premium')}
+          >
+            ✦ Premium
+          </button>
         </nav>
         {page === 'dashboard' && (
           <CategoryDropdown active={activeCategory} onChange={setActiveCategory} />
@@ -2299,6 +2379,8 @@ export default function App() {
 
       {page === 'about' ? (
         <AboutPage />
+      ) : page === 'premium' ? (
+        <PremiumPage />
       ) : page === 'community' ? (
         <CommunityPage currentUser={user.username} />
       ) : page === 'journal' ? (
