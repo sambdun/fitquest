@@ -950,6 +950,10 @@
   font-weight: 800; line-height: 1.15;
   color: #fff; margin-bottom: 18px; letter-spacing: -0.02em;
 }
+.about-creators {
+  font-size: 13px; color: rgba(255,255,255,0.45);
+  margin-bottom: 20px; letter-spacing: 0.01em;
+}
 .about-hero p { font-size: 17px; color: rgba(255,255,255,0.6); line-height: 1.7; }
 
 .about-body { max-width: 720px; margin: 0 auto; padding: 64px 32px 80px; }

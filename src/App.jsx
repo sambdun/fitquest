@@ -2142,6 +2142,7 @@ function AboutPage() {
         <div className="about-hero-inner">
           <div className="about-eyebrow">Our Story</div>
           <h1>Built for the person who's tired of being told what to do.</h1>
+          <div className="about-creators">Created by Samuel Dunlap, Gabriele Gnes, Jiin Jeong, and Etienne Delamarre</div>
           <p>FitQuest was created in 2026 — when fitness advice had never been louder, and never been less useful.</p>
         </div>
       </div>
