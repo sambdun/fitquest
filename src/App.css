@@ -670,7 +670,7 @@
 .community-header p { font-size: 13px; color: var(--text-dim); }
 .invite-btn {
   display: flex; align-items: center; gap: 6px;
-  background: var(--accent); color: #fff;
+  background: var(--blue); color: #fff;
   border: none; border-radius: 10px;
   padding: 9px 16px; font-size: 0.85rem; font-weight: 600;
   cursor: pointer; white-space: nowrap;
