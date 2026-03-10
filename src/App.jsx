@@ -1162,9 +1162,24 @@ function GuideCard({ entry, category, onAddToWorkouts, alreadyAdded }) {
 // ── Guidebook Page ─────────────────────────────────────────────
 function GuidebookPage({ workouts, onAddToWorkouts }) {
   const [activeTab, setActiveTab] = useState('Strength')
+  const [showForm, setShowForm]   = useState(false)
+  const [formName, setFormName]   = useState('')
+  const [formDesc, setFormDesc]   = useState('')
+  const [formCat, setFormCat]     = useState('Strength')
+  const [added, setAdded]         = useState(false)
 
   function isAdded(category, name) {
     return (workouts[category] || []).some(w => w.name === name)
+  }
+
+  async function submitCustom(e) {
+    e.preventDefault()
+    if (!formName.trim()) return
+    await onAddToWorkouts(formCat, { name: formName.trim(), desc: formDesc.trim() })
+    setFormName('')
+    setFormDesc('')
+    setAdded(true)
+    setTimeout(() => { setAdded(false); setShowForm(false) }, 1500)
   }
 
   return (
@@ -1203,6 +1218,46 @@ function GuidebookPage({ workouts, onAddToWorkouts }) {
             />
           ))}
         </div>
+      </div>
+
+      <div className="guide-custom-wrap">
+        {!showForm ? (
+          <button className="guide-custom-btn" onClick={() => { setShowForm(true); setFormCat(activeTab) }}>
+            + Add your own workout
+          </button>
+        ) : (
+          <form className="guide-custom-form" onSubmit={submitCustom}>
+            <h3 className="guide-custom-title">Add Custom Workout</h3>
+            <select
+              className="guide-custom-select"
+              value={formCat}
+              onChange={e => setFormCat(e.target.value)}
+            >
+              {CATEGORIES.map(cat => <option key={cat} value={cat}>{CAT_ICONS[cat]} {cat}</option>)}
+            </select>
+            <input
+              className="guide-custom-input"
+              placeholder="Workout name"
+              value={formName}
+              onChange={e => setFormName(e.target.value)}
+              maxLength={60}
+              autoFocus
+            />
+            <input
+              className="guide-custom-input"
+              placeholder="Description (optional)"
+              value={formDesc}
+              onChange={e => setFormDesc(e.target.value)}
+              maxLength={120}
+            />
+            <div className="guide-custom-actions">
+              <button type="button" className="guide-custom-cancel" onClick={() => setShowForm(false)}>Cancel</button>
+              <button type="submit" className="guide-custom-save" disabled={!formName.trim() || added}>
+                {added ? 'Added!' : 'Add to Dashboard'}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   )

@@ -497,8 +497,82 @@
   gap: 18px;
 }
 
+/* Custom workout form */
+.guide-custom-wrap {
+  max-width: 960px; width: 100%; margin: 0 auto 48px;
+  padding: 0 28px;
+}
+.guide-custom-btn {
+  background: none;
+  border: 2px dashed var(--border);
+  color: var(--muted);
+  border-radius: 12px;
+  padding: 14px 24px;
+  width: 100%;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+.guide-custom-btn:hover { border-color: var(--accent); color: var(--accent); }
+.guide-custom-form {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.guide-custom-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+.guide-custom-select,
+.guide-custom-input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg);
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color .2s;
+}
+.guide-custom-select:focus,
+.guide-custom-input:focus { border-color: var(--accent); }
+.guide-custom-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.guide-custom-cancel {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.guide-custom-save {
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: opacity .2s;
+}
+.guide-custom-save:disabled { opacity: 0.65; cursor: default; }
+
 @media (max-width: 700px) {
-  .guide-tabs-wrap, .guide-grid-wrap { padding-left: 16px; padding-right: 16px; }
+  .guide-tabs-wrap, .guide-grid-wrap, .guide-custom-wrap { padding-left: 16px; padding-right: 16px; }
   .guidebook-hero { padding: 28px 16px 24px; }
   .guide-grid { grid-template-columns: 1fr; }
 }
