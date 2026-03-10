@@ -2070,6 +2070,31 @@ function PremiumPage() {
 
         </div>
 
+        <div className="premium-innovation-block">
+          <div className="premium-innovation-eyebrow">Coming to Premium</div>
+          <h2 className="premium-innovation-title">You dream it. You fight it.</h2>
+          <p className="premium-innovation-sub">
+            The next evolution of FitQuest puts the creative power in your hands. We're building tools that let the community design the experience — not just play it.
+          </p>
+          <div className="premium-innovation-grid">
+            <div className="premium-innovation-card">
+              <div className="premium-innovation-icon">🧠</div>
+              <h4>User-Created Bosses</h4>
+              <p>Build your own boss — name it, set its HP, define what defeats it. Create a boss around a personal goal like running 20 miles in a week, hitting 10 workouts in a month, or finishing a 30-day challenge. Your boss. Your rules.</p>
+            </div>
+            <div className="premium-innovation-card">
+              <div className="premium-innovation-icon">🎯</div>
+              <h4>Goal-Driven Raids</h4>
+              <p>Design team raids tuned to your crew's goals — a sports team prepping for a season, a friend group training for a 5K, an office getting off the couch. Set the challenge, invite your people, and take it down together.</p>
+            </div>
+            <div className="premium-innovation-card">
+              <div className="premium-innovation-icon">🌐</div>
+              <h4>Richer Community Tools</h4>
+              <p>A more connected community where players share boss ideas, vote on challenges, and co-create content. The best user-built bosses could go public — so the whole FitQuest world gets to fight what you imagined.</p>
+            </div>
+          </div>
+        </div>
+
         <div className="premium-cta-block">
           <div className="premium-cta-price">
             <span>All of this</span>

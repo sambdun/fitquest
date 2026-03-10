@@ -787,6 +787,60 @@
 }
 .premium-card p { font-size: 13px; color: var(--text-mid); line-height: 1.65; }
 
+/* User Innovation Section */
+.premium-innovation-block {
+  border-top: 1px solid var(--border);
+  padding: 48px 0 40px;
+}
+.premium-innovation-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #a855f7;
+  margin-bottom: 10px;
+}
+.premium-innovation-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 12px;
+}
+.premium-innovation-sub {
+  font-size: 0.95rem;
+  color: var(--text-mid);
+  line-height: 1.65;
+  max-width: 620px;
+  margin-bottom: 32px;
+}
+.premium-innovation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+}
+.premium-innovation-card {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  border: 1px solid #e9d5ff;
+  border-radius: 14px;
+  padding: 22px 20px;
+}
+.premium-innovation-icon {
+  font-size: 1.75rem;
+  margin-bottom: 10px;
+}
+.premium-innovation-card h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+.premium-innovation-card p {
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.65;
+  margin: 0;
+}
+
 .premium-cta-block {
   text-align: center;
   border-top: 1px solid var(--border);
