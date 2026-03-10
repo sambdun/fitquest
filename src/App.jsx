@@ -1474,6 +1474,7 @@ function JournalPage({ onXPAwarded }) {
 // ── Community Page ────────────────────────────────────────────
 function CommunityPage({ currentUser }) {
   const [players, setPlayers] = useState([])
+  const [copied, setCopied]   = useState(false)
 
   useEffect(() => {
     fetch('/api/community')
@@ -1481,11 +1482,25 @@ function CommunityPage({ currentUser }) {
       .then(setPlayers)
   }, [])
 
+  function handleInvite() {
+    navigator.clipboard.writeText(window.location.origin).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
   return (
     <div className="community-page">
       <div className="community-header">
-        <h2>Community</h2>
-        <p>{players.length} player{players.length !== 1 ? 's' : ''} on FitQuest</p>
+        <div className="community-header-top">
+          <div>
+            <h2>Community</h2>
+            <p>{players.length} player{players.length !== 1 ? 's' : ''} on FitQuest</p>
+          </div>
+          <button className="invite-btn" onClick={handleInvite}>
+            {copied ? '✅ Link Copied!' : '🔗 Invite Friends'}
+          </button>
+        </div>
       </div>
       <div className="community-list">
         {players.map((p, i) => {

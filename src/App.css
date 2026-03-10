@@ -665,8 +665,18 @@
 ══════════════════════════════════════════ */
 .community-page { max-width: 680px; margin: 0 auto; padding: 32px 20px; }
 .community-header { margin-bottom: 24px; }
+.community-header-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .community-header h2 { font-family: 'Barlow', sans-serif; font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
 .community-header p { font-size: 13px; color: var(--text-dim); }
+.invite-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: 10px;
+  padding: 9px 16px; font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; white-space: nowrap;
+  transition: opacity .2s;
+}
+.invite-btn:hover { opacity: 0.88; }
 .community-list { display: flex; flex-direction: column; gap: 12px; }
 
 .player-card {
